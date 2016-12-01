@@ -1,0 +1,89 @@
+<div [hidden]="!loading" class="loading-screen"><ion-spinner></ion-spinner></div>
+<!--<ion-navbar *navbar>
+  <ion-title>StringForce</ion-title>
+</ion-navbar>-->
+
+
+
+<ion-content padding class="init-game">
+  <h1 class="title"> Space Adventure </h1>
+  <!-- <ion-item *ngFor="let item of devices.devices"> -->
+  <!-- <ion-item *ngFor='let item of ["name" : "1", "name": "2", "name": "3"]'> -->
+    <!-- Name : {{item.name}} - id {{item.id}} RSSI: {{item.rssi}} -->
+    <!-- Name : {{item.name}} -->
+  <!-- </ion-item> -->
+<!--  <ion-grid class="start-game-menu">
+    <ion-row style="width: 44%;margin-left: auto;margin-right: auto;" center>
+      <button *ngIf="serverStarted" secondary (click)="startGame()"> Hosting Game </button>
+      <button *ngIf="!serverStarted" (click)="startGame()"> Start new game </button>
+      <button (click)="searchGames()"> Search for games </button>
+    </ion-row>
+
+  </ion-grid> -->
+
+
+<!--  <ion-list>
+      <ion-item (click)="connect(item)" *ngFor='let item of (servers)'>
+       Name : {{item.name}}
+        <ion-icon secondary *ngIf="connectedTo === item.address" name="checkmark-circle" item-right></ion-icon>
+        </ion-item>
+</ion-list>-->
+<!--
+  <ion-item>
+    <ion-label fixed>Game-id</ion-label>
+    <ion-input type="text" value="" (ngModelChange)="onIdChange($event)" [(ngModel)]="playerId"></ion-input>
+  </ion-item>
+
+
+
+  <ion-range min="-200" max="200" pin="true" (ngModelChange)="onChange($event)" [(ngModel)]="contrast" secondary>
+    <ion-icon range-left small></ion-icon>
+    <ion-icon range-right ></ion-icon>
+  </ion-range>
+
+  <button (click)="goToGame()"> Start game! </button>-->
+<!-- <ion-list>
+  <ion-item *ngFor='let item of [{"name" : "1"}, {"name": "2"}, {"name": "3"}]'>
+   Name : {{item.name}}
+   <button (click)="connect(item)"> Connect </button>
+   <button (click)="send(item.address)"> Send message </button>
+</ion-item>
+</ion-list> -->
+
+<ion-grid>
+
+
+  <ion-row style="margin-top: 70px">
+    <ion-col width-33><room [color]=colors[0]></room></ion-col>
+    <ion-col width-33><room [color]=colors[1]></room></ion-col>
+    <ion-col width-33><room [color]=colors[2]></room></ion-col>
+  </ion-row>
+  <ion-row>
+    <ion-col width-33><room [color]=colors[3]></room></ion-col>
+    <ion-col width-33><room [color]=colors[4]></room></ion-col>
+    <ion-col width-33><room [color]=colors[5]></room></ion-col>
+  </ion-row>
+<!--  <ion-row center style="height: 160px">
+    <ion-col width-33 offset-33>
+     <ion-segment secondary [(ngModel)]="playerId" (ngModelChange)="onChange($event)">
+    <ion-segment-button value="0">
+      0
+    </ion-segment-button>
+    <ion-segment-button value="1">
+      1
+    </ion-segment-button>
+    <ion-segment-button value="2">
+      2
+    </ion-segment-button>
+    <ion-segment-button value="3">
+      3
+    </ion-segment-button>
+    </ion-segment>
+    </ion-col>
+
+    </ion-row>-->
+       <button (click)="goToGame()"> Clean </button>
+
+</ion-grid>
+
+</ion-content>

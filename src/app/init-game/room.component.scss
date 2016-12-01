@@ -1,0 +1,53 @@
+.card{
+    border-radius: 5px;
+    color: black;
+    border: 3px;
+    border-style: solid;
+}
+
+.red{
+    @extend .card;
+    background-color: rgba(255, 0, 0, 0.5);
+    border-color: rgba(255, 0, 0, 1);
+
+}
+.blue{
+    @extend .card;
+    background-color: rgba(0, 0, 255, 0.5);
+    border-color: rgba(0, 0, 255, 1);
+}
+.yellow{
+    @extend .card;
+    background-color: rgba(255, 255, 0, 0.4);
+    border-color: rgba(255, 255, 0, 1);
+}
+.pink{
+    @extend .card;
+    background-color: rgba(255,20,147, 0.5);
+    border-color: rgba(255,20,147, 1);
+}
+.green{
+    @extend .card;
+    background-color: rgba(0, 255, 0, 0.5);
+    border-color: rgba(0, 255, 0, 1);
+}
+.purple{
+    @extend .card;
+    background-color: rgba(128,0,128, 0.5);
+    border-color: rgba(128,0,128, 1);
+}
+
+.disabled{
+    opacity: 0.15;
+}
+
+
+ion-card ion-card-header{
+    color: black;
+    text-align: center;
+    text-transform: uppercase;
+}
+
+ion-card ion-card-content{
+    text-align: center;
+}

@@ -1,0 +1,25 @@
+<ion-card *ngIf="!disabled" class="card {{color.class}}" (click)="startOrJoin()">
+  <ion-card-header>
+    {{color.name}}
+  </ion-card-header>
+  <ion-card-content>
+    Plats för 4 spelare
+
+  </ion-card-content>
+  <ion-card-content>
+    <button (click)="disconnect($event)" *ngIf="connected" secondary>Lämna spel</button>
+    <button (click)="continiue($event)" *ngIf="connected" secondary>Fortsätt</button>
+  </ion-card-content>
+</ion-card>
+
+<ion-card *ngIf="disabled" class="card {{color.class}} disabled">
+  <ion-card-header>
+    {{color.name}}
+  </ion-card-header>
+  <ion-card-content>
+    Plats för 4 spelare
+
+  </ion-card-content>
+  <ion-card-content>
+  </ion-card-content>
+</ion-card>

@@ -1,6 +1,2 @@
-export class Constants {
-  public static DEVICE_HEIGHT = window.innerHeight;
-  public static DEVICE_WIDTH = window.innerWidth;
-
-  constructor() { }
-}
+const DEVICE_HEIGHT = window.innerHeight;
+const DEVICE_WIDTH = window.innerWidth;
