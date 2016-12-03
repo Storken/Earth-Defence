@@ -1,5 +1,5 @@
 import {Component, ViewChild} from '@angular/core';
-import {Platform} from 'ionic-angular';
+import {Platform, NavController} from 'ionic-angular';
 import {StatusBar} from 'ionic-native';
 import {log} from './Util/Log.service';
 import {ErrorService} from './Util/error.service';
@@ -10,8 +10,7 @@ import {GameComponent} from './game/game.component';
   template: `<ion-nav [root]="rootPage" swipeBackEnabled="false"></ion-nav>`
 })
 export class MyApp {
-  @ViewChild(Nav) nav;
-  rootPage: any = GameComponent;
+  rootPage: any = InitGameComponent;
 
   constructor(platform: Platform) {
     platform.ready().then(() => {

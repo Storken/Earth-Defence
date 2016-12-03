@@ -1,6 +1,19 @@
 import { Spaceship1Sprite } from './sprite';
+import { DEVICE_WIDTH } from '../Util/constants';
 
-export class Spaceship1 {
+export interface Spaceship {
+  xPosition: number;
+  yPosition: number;
+  xShots: number[];
+  yShots: number[];
+  shoot: boolean;
+  shouldShootCount: number;
+  render(ctx: CanvasRenderingContext2D);
+  moveLeftRemote(move: boolean);
+  moveRightRemote(move: boolean);
+}
+
+export class Spaceship1 implements Spaceship {
   private sprite: Spaceship1Sprite = new Spaceship1Sprite();
   public xPosition: number;
   public yPosition: number;
@@ -8,13 +21,15 @@ export class Spaceship1 {
   public yShots: number[] = [];
   public shoot: boolean;
   public shouldShootCount: number;
+  private mvLeft: boolean;
+  private mvRight: boolean;
 
-  constructor(xpos: number, ypos: number, private device_height: number,
-        private device_width: number) {
+  constructor(xpos: number, ypos: number) {
     this.xPosition = xpos;
     this.yPosition = ypos;
     this.shoot = false;
     this.shouldShootCount = 0;
+
   }
 
   render(ctx: CanvasRenderingContext2D) {
@@ -40,17 +55,28 @@ export class Spaceship1 {
       this.yShots.push(this.yPosition+25);
       this.yShots.push(this.yPosition+25);
     }
+
+    if(this.mvRight) {
+      this.moveRight();
+    } else if(this.mvLeft) {
+      this.moveLeft();
+    }
+
   }
 
-  moveLeft() {
-    if(this.xPosition-10 > 0) {
-      this.xPosition-=10;
-    }
+  private moveLeft() {
+    this.xPosition-=10;
   }
 
-  moveRight() {
-    if(this.xPosition+10 < this.device_width+160) {
-      this.xPosition+=10;
-    }
+  moveLeftRemote(move: boolean) {
+    this.mvLeft = move;
+  }
+
+  private moveRight() {
+    this.xPosition+=10;
+  }
+
+  moveRightRemote(move: boolean) {
+    this.mvRight = move;
   }
 }

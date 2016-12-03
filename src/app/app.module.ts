@@ -32,7 +32,7 @@ import { NavController } from 'ionic-angular';
     RoomComponent
   ],
   providers: [LogService, BluetoothService, Server,
-   Client, InitGameService, GameComponent, GameboardService,
-   GameService, ErrorService, RoomComponent]
+   Client, InitGameService, GameboardService,
+   GameService, ErrorService]
 })
 export class AppModule {}

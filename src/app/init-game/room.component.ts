@@ -1,7 +1,6 @@
 import {Component, NgZone, Input, OnInit} from '@angular/core';
-import {Platform} from 'ionic-angular';
+import {NavController, Platform} from 'ionic-angular';
 import {log} from '../Util/Log.service';
-import {NavController, NavParams} from 'ionic-angular';
 import {Observable}     from 'rxjs/Observable';
 import {InitGameService} from './init-game.service'
 import {GameComponent} from '../game/game.component';
@@ -87,9 +86,9 @@ export class RoomComponent implements OnInit {
         log("the sub2", this.connectionSubscription);
 
 
-        this.initGame.goToGame();
-        this.nav.push(GameComponent);
         this.initGame.setLoading(false);
+//        this.initGame.goToGame();
+        this.nav.push(GameComponent);
 
     }
 

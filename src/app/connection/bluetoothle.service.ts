@@ -23,7 +23,7 @@ export class BluetoothService {
 
 
   constructor(private server: Server, private client: Client) {
-    console.log("bluetoothSerivce loaded");
+    console.log("bluetoothService loaded");
     this.actAsServer = false;
     this.playerIdSubject = new Subject<number>();
     this.playerIdObs = this.playerIdSubject.asObservable();
@@ -51,11 +51,11 @@ export class BluetoothService {
   /**
    * PROTCOL to request a unique player id:
    * client sends ["id", <requestedID>, key] to server, where <requestedID> is
-   * a interger between 0 and 3. Key is a random number 0-1000000 that will be used as a identifier(since we can't 
-   * send device specific messages, this is good enough.) 
-   * 
-   * The server will return ["id", <playerId>, key], where playerId is 0-3 if accepted by server, 
-   * -1 if already taken. 
+   * a interger between 0 and 3. Key is a random number 0-1000000 that will be used as a identifier(since we can't
+   * send device specific messages, this is good enough.)
+   *
+   * The server will return ["id", <playerId>, key], where playerId is 0-3 if accepted by server,
+   * -1 if already taken.
    */
   requestPlayerId(playerId) {
     if (this.actAsServer) {
@@ -72,8 +72,12 @@ export class BluetoothService {
   }
 
   requestStartGame(playerId: number) {
+    if(playerId == null) {
+      playerId = 0;
+    }
     if (this.actAsServer) {
       let player = this.getPlayer(playerId);
+      log("playerId:", playerId);
       console.log(player);
       player.requestStart();
       log("the players", this.players);
@@ -90,6 +94,9 @@ export class BluetoothService {
   }
 
   hasAllStarted() {
+    if(this.players.length <= 1) {
+      return false;
+    }
     for (let player of this.players) {
       if (!player.hasStarted) {
         return false;
@@ -124,7 +131,10 @@ export class BluetoothService {
     let player = new Player();
     this.players.push(player);
     this.playerIdSubject.next(player.playerId);
+    this.playerIdObs
     this.roomUid = serviceUid;
+    console.log("playerId is set");
+    console.log(player.playerId);
 
     return this.server.start(name, serviceUid);
   }
@@ -242,7 +252,7 @@ export class BluetoothService {
       // respond to a ?-request(custom "am I allowed to connect?")
       if (msg[0] === "?") {
         // send the message back
-        if (this.server.nbrSubscribed >= 4) {
+        if (this.server.nbrSubscribed >= 2) {
           msg[2] = false;
         } else {
           msg[2] = true;
@@ -250,18 +260,16 @@ export class BluetoothService {
           let player = new Player();
           this.players.push(player);
           msg[3] = player.playerId;
-          
         }
         this.server.notify(msg, this.roomUid);
       } else if (msg[0] === "id") {
         log("id request!!", msg);
-        if (msg[1] < 4 && msg[1] >= 0) {
+        if (msg[1] < 2 && msg[1] >= 0) {
           if (this.takenId(msg[1])) {
             msg[1] = -1;
           } else {
             //this.players.push(new Player(msg[1]));
           }
-
           this.server.notify(msg, this.roomUid);
         }
       } else if (msg[0] === "start") {

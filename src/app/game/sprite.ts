@@ -6,6 +6,16 @@ export class Spaceship1Sprite {
     public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
         this.sprite.render(ctx, x, y);
     }
+
+}
+
+export class Spaceship2Sprite {
+    private sprite = new Sprite(IMG_URL + 'spaceship2.png', 120, 115);
+
+    public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+        this.sprite.render(ctx, x, y);
+    }
+
 }
 
 export class UfoSprite {
@@ -27,6 +37,7 @@ class Sprite {
     private ticks = 0;
     private ticksPerImage = 0;
     private ticksThisImage = 0;
+    public noDraw: boolean;
 
     constructor(private imgSrc: string, ticksPerImage?: number,
         private width?: number, private height?: number) {
@@ -35,6 +46,7 @@ class Sprite {
         if (ticksPerImage) {
             this.ticksPerImage = ticksPerImage;
         }
+        this.noDraw = false;
     }
     renderWithRotation(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
         ctx.translate(x, y);
@@ -46,7 +58,9 @@ class Sprite {
     }
 
     render(ctx: CanvasRenderingContext2D, x: number, y: number) {
-      ctx.drawImage(this.image, x, y);
+      if(!this.noDraw){
+        ctx.drawImage(this.image, x, y);
+      }
       /*
         let width = this.width ? this.width : IMG_WIDTH;
         let height = this.height ? this.height : IMG_HEIGHT;

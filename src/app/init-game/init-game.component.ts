@@ -3,7 +3,7 @@ import {Platform} from 'ionic-angular';
 import {BluetoothService} from '../connection/bluetoothle.service';
 import {ConnectionService} from '../connection/connection.service'
 import {log} from '../Util/Log.service';
-import {NavController, Toast} from 'ionic-angular';
+import {Toast, NavController} from 'ionic-angular';
 import {RoomComponent} from './room.component';
 import {InitGameService} from './init-game.service'
 import {GameComponent} from '../game/game.component';
@@ -24,8 +24,8 @@ export class InitGameComponent implements OnInit {
 
   constructor(private _ngZone: NgZone,
     private connection: BluetoothService, private nav: NavController,
-    private gameService: GameComponent, private initGame: InitGameService) {
-      this.nav.setRoot(this);
+    private initGame: InitGameService) {
+
 
   }
   ngOnInit() {
@@ -73,7 +73,7 @@ export class InitGameComponent implements OnInit {
     this.initGame.getLoading().subscribe(isLoading => { this.loading = isLoading; });
 
     this.connection.getErrors().subscribe(error => {
-      //this.presentToast(error);
+      this.presentToast(error);
     });
   }
 
@@ -111,7 +111,6 @@ export class InitGameComponent implements OnInit {
             this._ngZone.run(() => {this.serverStarted = serverStarted});
           });
           //this.subscribeToMsg();*/
-
   }
 
   searchGames() {
@@ -157,6 +156,7 @@ export class InitGameComponent implements OnInit {
   }
 
   goToGame() {
+    log("goToGame() GOING", "yolo");
     this.nav.push(GameComponent);
   }
 }
