@@ -64,8 +64,8 @@ export class GameComponent {
     private collisionService: CollisionService
   ) {
     this.touchDown = false;
-    // this.state = State.FLY_TO_START
-    this.state = State.PLAYING;
+    this.state = State.FLY_TO_START
+    //this.state = State.PLAYING;
     this.isReady = false;
     this.moving = false;
     this.moveSent = false;
@@ -75,7 +75,7 @@ export class GameComponent {
     this.context = this.gameCanvas.nativeElement.getContext("2d");
     this.listenerHandler = new ListenerHandler(this.gameCanvas.nativeElement);
     this.ufoHandler = new UfoHandler(this.context);
-    this.initShips(); // only for web dev
+//  this.initShips(); // only for web dev
     this.subscribe();
     this.prepGame(this.context);
     this.playerId = this.gameService.playerId;
@@ -87,16 +87,16 @@ export class GameComponent {
     //initiate Spaceships
     if(this.gameService.playerId == 0){
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150, 0);
+        , DEVICE_HEIGHT - 150, 0, this.gameService.playerId == 0);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150, 1);
+        , DEVICE_HEIGHT - 150, 1, this.gameService.playerId == 1);
     } else {
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150, 1);
+        , DEVICE_HEIGHT - 150, 1, this.gameService.playerId == 1);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150, 0);
+        , DEVICE_HEIGHT - 150, 0, this.gameService.playerId == 0);
     }
     this.collisionHandler = new CollisionHandler(
             this.spaceship1, this.spaceship2, this.ufoHandler);

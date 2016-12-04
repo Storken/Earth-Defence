@@ -10,7 +10,7 @@ import {GameComponent} from './game/game.component';
   template: `<ion-nav [root]="rootPage" swipeBackEnabled="false"></ion-nav>`
 })
 export class MyApp {
-  rootPage: any = GameComponent;
+  rootPage: any = InitGameComponent;
 
   constructor(platform: Platform) {
     platform.ready().then(() => {
