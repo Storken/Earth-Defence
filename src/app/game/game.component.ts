@@ -85,17 +85,17 @@ export class GameComponent {
   private initShips(){
     //initiate Spaceships
     if(this.gameService.playerId == 0){
+      this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
+        , DEVICE_HEIGHT - 150, 0);
+
+      this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH/4)
+        , DEVICE_HEIGHT - 150, 1);
+    } else {
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150);
+        , DEVICE_HEIGHT - 150, 1);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150);
-    } else {
-      this.spaceship1 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150);
-
-      this.spaceship2 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150);
+        , DEVICE_HEIGHT - 150, 0);
     }
   }
 
@@ -214,13 +214,7 @@ export class GameComponent {
         this.moving = false;
       }
     }
-/*
-    if(this.spaceship1.xPosition > (DEVICE_WIDTH)*2) {
-      this.spaceship1.xPosition = 0;
-    }
-    else if(this.spaceship1.xPosition < (DEVICE_WIDTH)*-1) {
-      this.spaceship1.xPosition = DEVICE_WIDTH;
-    }*/
+
   }
 
     //Clear canvas for updated draw

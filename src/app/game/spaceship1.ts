@@ -1,4 +1,5 @@
-import { Spaceship1Sprite } from './sprite';
+import { SpaceshipSprite } from './sprite';
+import { GameService } from './game.service';
 import { DEVICE_WIDTH } from '../Util/constants';
 
 export interface Spaceship {
@@ -14,7 +15,7 @@ export interface Spaceship {
 }
 
 export class Spaceship1 implements Spaceship {
-  private sprite: Spaceship1Sprite = new Spaceship1Sprite();
+  private sprite: SpaceshipSprite;
   public xPosition: number;
   public yPosition: number;
   public xShots: number[] = [];
@@ -24,15 +25,27 @@ export class Spaceship1 implements Spaceship {
   private mvLeft: boolean;
   private mvRight: boolean;
 
-  constructor(xpos: number, ypos: number) {
+  constructor(xpos: number, ypos: number, playerId: number) {
     this.xPosition = xpos;
     this.yPosition = ypos;
     this.shoot = false;
     this.shouldShootCount = 0;
-
+    this.sprite = new SpaceshipSprite(playerId);
   }
 
   render(ctx: CanvasRenderingContext2D) {
+    if(this.mvRight) {
+      this.moveRight();
+    } else if(this.mvLeft) {
+      this.moveLeft();
+    }
+    if(this.xPosition > (DEVICE_WIDTH)*2) {
+      this.xPosition = 0;
+    }
+    else if(this.xPosition < (DEVICE_WIDTH)*-1) {
+      this.xPosition = DEVICE_WIDTH;
+    }
+
     var removeShots = [];
     for(var i = 0; i < this.xShots.length; i++) {
       ctx.fillStyle = 'green';
@@ -46,7 +59,6 @@ export class Spaceship1 implements Spaceship {
       this.yShots.shift();
       this.xShots.shift();
     }
-    this.sprite.render(ctx, this.xPosition, this.yPosition);
     this.shouldShootCount++;
     if(this.shouldShootCount > 4) {
       this.shouldShootCount = 0;
@@ -56,12 +68,7 @@ export class Spaceship1 implements Spaceship {
       this.yShots.push(this.yPosition+25);
     }
 
-    if(this.mvRight) {
-      this.moveRight();
-    } else if(this.mvLeft) {
-      this.moveLeft();
-    }
-
+    this.sprite.render(ctx, this.xPosition, this.yPosition);
   }
 
   private moveLeft() {

@@ -1,19 +1,21 @@
 const IMG_URL = 'images/sprites/';
 
-export class Spaceship1Sprite {
-    private sprite = new Sprite(IMG_URL + 'spaceship1.png', 120, 115);
+export class SpaceshipSprite {
+    private sprite : Sprite;
 
     public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
         this.sprite.render(ctx, x, y);
     }
 
-}
-
-export class Spaceship2Sprite {
-    private sprite = new Sprite(IMG_URL + 'spaceship2.png', 120, 115);
-
-    public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
-        this.sprite.render(ctx, x, y);
+    constructor(player: number) {
+      switch (player) {
+        case 0:
+          this.sprite = new Sprite(IMG_URL + 'spaceship1.png', 120, 115)
+          break;
+        case 1:
+          this.sprite = new Sprite(IMG_URL + 'spaceship2.png', 120, 115)
+          break
+      }
     }
 
 }
