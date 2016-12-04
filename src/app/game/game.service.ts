@@ -74,30 +74,21 @@ export class GameService {
       this.playerId
     ]);
   }
-
-  sendPosition(x: number) {
-    this.connection.send([
-      SPACESHIP_POSITION,
-      x,
-      "",
-      this.playerId
-    ]);
-  }
-
-  sendLeftmovement(move: boolean) {
+  
+  sendLeftmovement(move: boolean, x? : number) {
     this.connection.send([
       SPACESHIP_LEFT,
       move,
-      "",
+      x ? x : "",
       this.playerId
     ]);
   }
 
-  sendRightmovement(move: boolean) {
+  sendRightmovement(move: boolean, x? : number) {
     this.connection.send([
       SPACESHIP_RIGHT,
       move,
-      "",
+      x ? x : "",
       this.playerId
     ]);
   }
@@ -133,14 +124,17 @@ export class GameService {
       case "start":
         this.levelStartSource.next(true);
         break;
-      case SPACESHIP_POSITION:
-        this.spaceshipMovingSource.next(msg[1]);
-        break;
       case SPACESHIP_LEFT:
         this.spaceshipMovingLeftSource.next(msg[1]);
+        if(!msg[1]) {
+          this.spaceshipMovingSource.next(msg[2]);
+        }
         break;
       case SPACESHIP_RIGHT:
         this.spaceshipMovingRightSource.next(msg[1]);
+        if(!msg[1]) {
+          this.spaceshipMovingSource.next(msg[2]);
+        }
         break;
     }
 

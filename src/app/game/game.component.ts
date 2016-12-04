@@ -26,8 +26,7 @@ enum State {
   templateUrl: 'game.html'
 })
 export class GameComponent {
-    // get the element with the #gameCanvas on it
-    @ViewChild("gameCanvas") gameCanvas: ElementRef;
+    @ViewChild("gameCanvas") gameCanvas: ElementRef; // get the element with the #gameCanvas on it
 
     //starflow variables
     private x: number[] = [];
@@ -50,6 +49,7 @@ export class GameComponent {
     private moveSent: boolean;
 
     //game variables
+    private context: CanvasRenderingContext2D;
     private state: State;
     private onPlatform: boolean;
     private helpText: string;
@@ -73,11 +73,13 @@ export class GameComponent {
   }
 
   ionViewDidLoad() {
+    this.context = this.gameCanvas.nativeElement.getContext("2d");
+    this.listenerHandler = new ListenerHandler(this.gameCanvas.nativeElement);
     this.subscribe();
-    this.prepGame();
+    this.prepGame(this.context);
     this.playerId = this.gameService.playerId;
     log("playerId - GC:", this.playerId);
-    this.tick();
+    this.tick(this.context);
   }
 
   private initShips(){
@@ -97,10 +99,9 @@ export class GameComponent {
     }
   }
 
-  private prepGame() {
+  private prepGame(ctx: CanvasRenderingContext2D) {
     this.gameCanvas.nativeElement.width = DEVICE_WIDTH;
     this.gameCanvas.nativeElement.height = DEVICE_HEIGHT;
-    let ctx = this.gameCanvas.nativeElement.getContext("2d");
     // happy drawing from here on
     ctx.fillStyle = 'black';
     ctx.fillRect(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT);
@@ -132,11 +133,10 @@ export class GameComponent {
     this.gameService.requestStart();
   }
 
-  tick() {
+  tick(ctx : CanvasRenderingContext2D) {
     requestAnimationFrame(()=> {
-      this.tick()
+      this.tick(ctx)
     });
-    let ctx = this.gameCanvas.nativeElement.getContext("2d");
     //Clear canvas for updated draw
     this.clearCanvas(ctx);
 
@@ -152,8 +152,8 @@ export class GameComponent {
           this.renderFlyToStart(ctx);
           break;
         case(State.PLAYING):
-          this.playerId == 0 ? this.helpText = "You are green"
-                             : this.helpText = "You are red";
+          this.gameService.playerId == 0 ? this.helpText = "You are red"
+                             : this.helpText = "You are green";
           this.renderPlaying(ctx);
 
           //Spaceship controllers
@@ -209,9 +209,7 @@ export class GameComponent {
         console.log("STOPPING MOVEMENT");
         this.spaceship1.moveLeftRemote(false);
         this.spaceship1.moveRightRemote(false);
-        this.gameService.sendRightmovement(false);
-        this.gameService.sendLeftmovement(false);
-        this.gameService.sendPosition(this.spaceship1.xPosition);
+        this.gameService.sendLeftmovement(false, this.spaceship1.xPosition);
         console.log(this.spaceship2.xPosition);
         this.moving = false;
       }
@@ -219,12 +217,10 @@ export class GameComponent {
 /*
     if(this.spaceship1.xPosition > (DEVICE_WIDTH)*2) {
       this.spaceship1.xPosition = 0;
-      this.gameService.sendPosition(this.spaceship1.xPosition-200);
     }
     else if(this.spaceship1.xPosition < (DEVICE_WIDTH)*-1) {
       this.spaceship1.xPosition = DEVICE_WIDTH;
-      this.gameService.sendPosition(this.spaceship1.xPosition+100);
-    } */
+    }*/
   }
 
     //Clear canvas for updated draw
@@ -255,8 +251,6 @@ export class GameComponent {
   private renderPlaying(ctx: CanvasRenderingContext2D) {
       //Draw ufos
       this.ufo1.render(ctx);
-
-      this.helpText = "";
   }
 
   private renderFlyToStart(ctx: CanvasRenderingContext2D) {
@@ -318,6 +312,9 @@ export class GameComponent {
       // Updates the other players spaceship
       this.gameService.spaceshipMovingLeft$.subscribe(move => {
         log("spaceship2 move left", move);
+        if(!move) {
+          this.spaceship2.moveRightRemote(move);
+        }
         this.spaceship2.moveLeftRemote(move);
       });
 
@@ -325,6 +322,9 @@ export class GameComponent {
       this.gameService.spaceshipMovingRight$.subscribe(move => {
         log("spaceship2 move right", move);
         this.spaceship2.moveRightRemote(move);
+        if(!move) {
+          this.spaceship2.moveRightRemote(move);
+        }
       });
 
       // Updates the other players spaceship
