@@ -1,6 +1,5 @@
 import { Injectable } from '@angular/core';
 import {NavController, Toast} from 'ionic-angular';
-import {MyApp} from '../app.component';
 
 
 

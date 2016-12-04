@@ -1,13 +1,14 @@
 import { Component, ViewChild, ElementRef } from '@angular/core';
-import { Spaceship1, Spaceship } from './spaceship1';
-import { Spaceship2 } from './spaceship2';
-import { Ufo } from './ufo';
+import { Spaceship2, Spaceship1, Spaceship } from './spaceship';
 import { log } from '../Util/Log.service';
 import { DEVICE_WIDTH, DEVICE_HEIGHT, FLY_TO_START_TEXT,
-  WAITING_FOR_OTHER_PLAYERS } from '../Util/constants';
+  WAITING_FOR_OTHER_PLAYERS, ROUND_RED } from '../Util/constants';
 import { Observable } from 'rxjs/Rx';
 import { GameService } from './game.service';
 import { ListenerHandler } from '../Util/event-listener-handler';
+import { UfoHandler } from './ufo-handler';
+import { CollisionService } from './collision.service';
+import { CollisionHandler } from './collision-handler';
 /*
   Generated class for the Game page.
 
@@ -38,7 +39,7 @@ export class GameComponent {
     spaceship2: Spaceship;
 
     //ufo variables
-    ufo1: Ufo;
+    ufoHandler: UfoHandler;
 
     //player variables
     lastTouch: any;
@@ -53,20 +54,18 @@ export class GameComponent {
     private state: State;
     private onPlatform: boolean;
     private helpText: string;
-    private timer: number;
-    private timr = Observable.timer(5000,1000);
     private listenerHandler: ListenerHandler;
+    private collisionHandler: CollisionHandler;
     private gamewidth: number;
     private gameheight: number;
 
   constructor(
-    private gameService: GameService
+    private gameService: GameService,
+    private collisionService: CollisionService
   ) {
     this.touchDown = false;
-    this.state = State.FLY_TO_START;
-    this.timer = 0;
-    this.timr.subscribe(timr=> {
-      this.count(); });
+    // this.state = State.FLY_TO_START
+    this.state = State.PLAYING;
     this.isReady = false;
     this.moving = false;
     this.moveSent = false;
@@ -75,6 +74,8 @@ export class GameComponent {
   ionViewDidLoad() {
     this.context = this.gameCanvas.nativeElement.getContext("2d");
     this.listenerHandler = new ListenerHandler(this.gameCanvas.nativeElement);
+    this.ufoHandler = new UfoHandler(this.context);
+    this.initShips(); // only for web dev
     this.subscribe();
     this.prepGame(this.context);
     this.playerId = this.gameService.playerId;
@@ -97,6 +98,8 @@ export class GameComponent {
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
         , DEVICE_HEIGHT - 150, 0);
     }
+    this.collisionHandler = new CollisionHandler(
+            this.spaceship1, this.spaceship2, this.ufoHandler);
   }
 
   private prepGame(ctx: CanvasRenderingContext2D) {
@@ -128,8 +131,14 @@ export class GameComponent {
       this.touchDown = false;
     }, false);
 
-    //initiate Ufo
-    this.ufo1 = new Ufo(DEVICE_WIDTH/2, 0);
+
+    Observable.timer(1000, 1000).subscribe(t => {
+      if(this.state == State.PLAYING) {
+        if(this.ufoHandler.amountOfUfos() < 10) {
+          this.ufoHandler.addUfo(ROUND_RED);
+        }
+      }
+    });
     this.gameService.requestStart();
   }
 
@@ -146,7 +155,6 @@ export class GameComponent {
     //Draw help text
     this.drawHelpText(ctx);
 
-
     switch(this.state) {
         case(State.FLY_TO_START):
           this.renderFlyToStart(ctx);
@@ -160,8 +168,8 @@ export class GameComponent {
           this.spaceshipControllers();
 
           //Draw spaceships
-          this.spaceship1.render(ctx);
           this.spaceship2.render(ctx);
+          this.spaceship1.render(ctx); // always show your own ship on top
           break;
         case(State.DONE):
           this.renderDone(ctx);
@@ -178,14 +186,7 @@ export class GameComponent {
         log("MOVING RIGHT", this.spaceship1.xPosition);
         this.spaceship1.moveRightRemote(true); // move ship right
         this.moving = true;
-//        if(this.spaceship1.isInOtherScreen){ //update the other screen on movements
-           // set the spaceship in the other screen on correct side of screen
-           /*
-          if(this.spaceship1.xPosition < DEVICE_WIDTH
-              && this.spaceship1.xPosition > DEVICE_WIDTH+10) {
-            this.gameService.sendPosition(this.spaceship1.xPosition);
-          }*/
-          //only send ONCE that the spaceship is moving
+          //update the other screen that the ship is moving
         log("MOVING RIGHT IN OTHER SCREEN", this.spaceship1.xPosition);
         this.gameService.sendRightmovement(true);
 
@@ -194,12 +195,7 @@ export class GameComponent {
         log("MOVING LEFT", this.spaceship1.xPosition);
         this.moving = true;
         this.spaceship1.moveLeftRemote(true); // move ship left
-  //      if(this.spaceship1.isInOtherScreen) { //update the other screen on movements
-           // set the spaceship in the other screen on correct side of screen
-          /*if(this.spaceship1.xPosition > -10 && this.spaceship1.xPosition < 0) {
-            this.gameService.sendPosition(this.spaceship1.xPosition);
-          }*/
-          //only send ONCE that the spaceship is moving
+          //update the other screen that the ship is moving
         log("MOVING LEFT IN OTHER SCREEN", this.spaceship1.xPosition);
         this.gameService.sendLeftmovement(true); // move ship in other screen
   //    }
@@ -244,7 +240,10 @@ export class GameComponent {
 
   private renderPlaying(ctx: CanvasRenderingContext2D) {
       //Draw ufos
-      this.ufo1.render(ctx);
+      this.ufoHandler.renderUfos();
+
+      //Check for collisions
+      this.collisionHandler.check();
   }
 
   private renderFlyToStart(ctx: CanvasRenderingContext2D) {
@@ -260,15 +259,6 @@ export class GameComponent {
     ctx.font = "35px ChalkboardSE-Regular";
     ctx.textAlign = "center";
     ctx.fillText(this.helpText, DEVICE_WIDTH/2, 300);
-  }
-
-  private count() {
-    this.timer--;
-  }
-
-  private startNewTimer(time: number) {
-    this.timer = time;
-    this.timr = Observable.timer(time * 1000, 1000);
   }
 
   private subscribe() {
@@ -326,5 +316,7 @@ export class GameComponent {
         log("new position", move);
         this.spaceship2.xPosition = move;
       });
+
+      //Update pointsystem (temporary feature)
     }
 }

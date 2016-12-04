@@ -74,7 +74,7 @@ export class GameService {
       this.playerId
     ]);
   }
-  
+
   sendLeftmovement(move: boolean, x? : number) {
     this.connection.send([
       SPACESHIP_LEFT,

@@ -1,14 +1,25 @@
 import { UfoSprite } from './sprite';
+import { ROUND_RED_WIDTH, ROUND_RED_HEIGHT, ROUND_RED } from '../Util/constants';
 
-export class Ufo {
-  private sprite: UfoSprite = new UfoSprite();
-  private count: number;
+export interface Ufo {
+  render(ctx: CanvasRenderingContext2D);
+  width : number;
+  height : number;
+  xPosition : number;
+  yPosition : number;
+}
 
-  constructor(
-    public xPosition: number,
-    public yPosition: number){
-      this.count = 0;
-    }
+export class RoundRedUfo implements Ufo{
+  private sprite: UfoSprite = new UfoSprite(ROUND_RED);
+  public width = ROUND_RED_WIDTH;
+  public height = ROUND_RED_HEIGHT;
+  public xPosition : number;
+  public yPosition : number;
+
+  constructor( x: number, y: number){
+      this.xPosition = x;
+      this.yPosition = y;
+  }
 
   render(ctx: CanvasRenderingContext2D) {
       this.sprite.render(ctx, this.xPosition, this.yPosition);

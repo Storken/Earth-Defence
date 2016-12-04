@@ -1,3 +1,4 @@
+import { ROUND_RED, ROUND_RED_WIDTH, ROUND_RED_HEIGHT } from '../Util/constants';
 const IMG_URL = 'images/sprites/';
 
 export class SpaceshipSprite {
@@ -21,11 +22,15 @@ export class SpaceshipSprite {
 }
 
 export class UfoSprite {
-    private sprite = new Sprite(IMG_URL + 'ufo1.png', 50, 50);
-    public static whichUfo: number = 0;
+    private sprite : Sprite;
 
-    constructor() {
-
+    constructor(whichUfo : number) {
+      switch (whichUfo) {
+        case ROUND_RED:
+          this.sprite = new Sprite(IMG_URL + 'ufo1.png'
+                                    , ROUND_RED_WIDTH, ROUND_RED_HEIGHT);
+          break;
+      }
     }
 
     public render(ctx: CanvasRenderingContext2D, x: number, y: number) {

@@ -42,13 +42,13 @@ export class Client {
   }
 
   /**
-   * Discover the serivces and characteristics of a device. Only scans the provided 
+   * Discover the serivces and characteristics of a device. Only scans the provided
    * service uuid and the characteristic "ABCD" for better performance.
-   * 
-   * When the characteristic is found this.subscribe() is called. 
-   * 
-   * Make sure that this.connectedTo is set before usage. 
-   * 
+   *
+   * When the characteristic is found this.subscribe() is called.
+   *
+   * Make sure that this.connectedTo is set before usage.
+   *
    * @return An observable that updates when new servers are found.
    */
   scanForService(serviceUid: string) {
