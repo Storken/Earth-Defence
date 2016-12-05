@@ -107,7 +107,7 @@ export class GameService {
  * or passes the message along to other clients if they need to know.
  */
   private msgReceived = (msg) => {
-    log("message received in spaceshipadventure-service", msg);
+    log("message received in spaceshipadventure-gameservice", msg);
 
     if (msg[3] === this.playerId) {
       console.log("From me!");

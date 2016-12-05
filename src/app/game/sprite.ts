@@ -1,4 +1,5 @@
-import { ROUND_RED, ROUND_RED_WIDTH, ROUND_RED_HEIGHT } from '../Util/constants';
+import { PURPLE_HARVEST, PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT
+        , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT} from '../Util/constants';
 const IMG_URL = 'images/sprites/';
 
 export class SpaceshipSprite {
@@ -26,9 +27,9 @@ export class UfoSprite {
 
     constructor(whichUfo : number) {
       switch (whichUfo) {
-        case ROUND_RED:
+        case PURPLE_HARVEST:
           this.sprite = new Sprite(IMG_URL + 'ufo1.png'
-                                    , ROUND_RED_WIDTH, ROUND_RED_HEIGHT);
+                                    , PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT);
           break;
       }
     }
@@ -36,6 +37,18 @@ export class UfoSprite {
     public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
         this.sprite.render(ctx, x, y);
     }
+}
+
+export class HealthSprite {
+  private sprite = new Sprite(IMG_URL + 'healthpoint.png'
+                              , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT);
+
+  constructor() {
+  }
+
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+      this.sprite.render(ctx, x, y);
+  }
 }
 
 class Sprite {
@@ -61,6 +74,10 @@ class Sprite {
         this.render(ctx, 0, 0);
         ctx.rotate(-angle);
         ctx.translate(-x, -y);
+
+    }
+
+    renderWithBlink(ctx: CanvasRenderingContext2D, x: number, y: number) {
 
     }
 

@@ -1,5 +1,6 @@
 import { UfoSprite } from './sprite';
-import { ROUND_RED_WIDTH, ROUND_RED_HEIGHT, ROUND_RED } from '../Util/constants';
+import { PURPLE_HARVEST, PURPLE_HARVEST_WIDTH
+  , PURPLE_HARVEST_HEIGHT } from '../Util/constants';
 
 export interface Ufo {
   render(ctx: CanvasRenderingContext2D);
@@ -9,10 +10,10 @@ export interface Ufo {
   yPosition : number;
 }
 
-export class RoundRedUfo implements Ufo{
-  private sprite: UfoSprite = new UfoSprite(ROUND_RED);
-  public width = ROUND_RED_WIDTH;
-  public height = ROUND_RED_HEIGHT;
+export class PurpleHarvestUfo implements Ufo{
+  private sprite: UfoSprite = new UfoSprite(PURPLE_HARVEST);
+  public width = PURPLE_HARVEST_WIDTH;
+  public height = PURPLE_HARVEST_HEIGHT;
   public xPosition : number;
   public yPosition : number;
 
@@ -28,7 +29,6 @@ export class RoundRedUfo implements Ufo{
 
   nextPosition() {
     this.yPosition += 5;
-    this.yPosition = this.yPosition % window.screen.height;
   }
 
 }

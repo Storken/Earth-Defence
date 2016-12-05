@@ -2,13 +2,18 @@ import { Component, ViewChild, ElementRef } from '@angular/core';
 import { Spaceship2, Spaceship1, Spaceship } from './spaceship';
 import { log } from '../Util/Log.service';
 import { DEVICE_WIDTH, DEVICE_HEIGHT, FLY_TO_START_TEXT,
-  WAITING_FOR_OTHER_PLAYERS, ROUND_RED } from '../Util/constants';
+  WAITING_FOR_OTHER_PLAYERS, PURPLE_HARVEST, SHIP_HEIGHT,
+  SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_Y,
+  SHIP_1_CANNON_2_X, SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y,
+  SHIP_2_CANNON_2_Y, SHIP_2_CANNON_2_X } from '../Util/constants';
 import { Observable } from 'rxjs/Rx';
 import { GameService } from './game.service';
 import { ListenerHandler } from '../Util/event-listener-handler';
 import { UfoHandler } from './ufo-handler';
 import { CollisionService } from './collision.service';
 import { CollisionHandler } from './collision-handler';
+import { HealthSprite } from './sprite';
+import { NavController } from 'ionic-angular';
 /*
   Generated class for the Game page.
 
@@ -19,7 +24,7 @@ import { CollisionHandler } from './collision-handler';
 enum State {
   FLY_TO_START,
   PLAYING,
-  DONE
+  GAMEOVER
 }
 
 @Component({
@@ -48,6 +53,7 @@ export class GameComponent {
     private playerId: number;
     private moving: boolean;
     private moveSent: boolean;
+    private health: number;
 
     //game variables
     private context: CanvasRenderingContext2D;
@@ -58,24 +64,29 @@ export class GameComponent {
     private collisionHandler: CollisionHandler;
     private gamewidth: number;
     private gameheight: number;
+    private health_sprites: HealthSprite[];
 
   constructor(
     private gameService: GameService,
-    private collisionService: CollisionService
+    private collisionService: CollisionService,
+    private nav: NavController
   ) {
     this.touchDown = false;
     this.state = State.FLY_TO_START
-    //this.state = State.PLAYING;
+    //this.state = State.PLAYING; //web-check
     this.isReady = false;
     this.moving = false;
     this.moveSent = false;
+    this.health = 5;
+    this.health_sprites = [new HealthSprite(), new HealthSprite(),
+      new HealthSprite(), new HealthSprite(), new HealthSprite()];
+    //this.initShips(); // only for web dev
   }
 
   ionViewDidLoad() {
     this.context = this.gameCanvas.nativeElement.getContext("2d");
     this.listenerHandler = new ListenerHandler(this.gameCanvas.nativeElement);
     this.ufoHandler = new UfoHandler(this.context);
-//  this.initShips(); // only for web dev
     this.subscribe();
     this.prepGame(this.context);
     this.playerId = this.gameService.playerId;
@@ -87,19 +98,26 @@ export class GameComponent {
     //initiate Spaceships
     if(this.gameService.playerId == 0){
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150, 0, this.gameService.playerId == 0);
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 20, 0, true,
+        SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150, 1, this.gameService.playerId == 1);
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 20, 1, false,
+        SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
     } else {
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - 150, 1, this.gameService.playerId == 1);
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 20, 1, true,
+        SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - 150, 0, this.gameService.playerId == 0);
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 20, 0, false,
+        SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
     }
-    this.collisionHandler = new CollisionHandler(
-            this.spaceship1, this.spaceship2, this.ufoHandler);
+
+    this.collisionHandler = new CollisionHandler(this.collisionService);
+
+    this.gameService.playerId == 0 ? this.helpText = "Du är det blåa skeppet"
+                         : this.helpText = "Du är det gula skeppet";
   }
 
   private prepGame(ctx: CanvasRenderingContext2D) {
@@ -135,7 +153,7 @@ export class GameComponent {
     Observable.timer(1000, 1000).subscribe(t => {
       if(this.state == State.PLAYING) {
         if(this.ufoHandler.amountOfUfos() < 10) {
-          this.ufoHandler.addUfo(ROUND_RED);
+          this.ufoHandler.addUfo(PURPLE_HARVEST);
         }
       }
     });
@@ -160,8 +178,10 @@ export class GameComponent {
           this.renderFlyToStart(ctx);
           break;
         case(State.PLAYING):
-          this.gameService.playerId == 0 ? this.helpText = "You are red"
-                             : this.helpText = "You are green";
+          Observable.timer(3000).subscribe(() => {
+            this.helpText = "";
+          });
+
           this.renderPlaying(ctx);
 
           //Spaceship controllers
@@ -171,13 +191,15 @@ export class GameComponent {
           this.spaceship2.render(ctx);
           this.spaceship1.render(ctx); // always show your own ship on top
           break;
-        case(State.DONE):
-          this.renderDone(ctx);
+        case(State.GAMEOVER):
+          this.renderGameover(ctx);
           break;
         default:
           this.renderFlyToStart(ctx);
           break;
     }
+    //Draw health
+    this.drawHealth(ctx);
   }
 
   private spaceshipControllers() {
@@ -234,16 +256,24 @@ export class GameComponent {
     }
   }
 
-  private renderDone(ctx: CanvasRenderingContext2D) {
-
+  private renderGameover(ctx: CanvasRenderingContext2D) {
+    this.helpText = "GAME OVER";
   }
 
   private renderPlaying(ctx: CanvasRenderingContext2D) {
-      //Draw ufos
-      this.ufoHandler.renderUfos();
+    //Draw ufos
+    this.ufoHandler.renderUfos();
 
-      //Check for collisions
-      this.collisionHandler.check();
+    //Check for collisions
+    this.health = this.collisionHandler.check(this.spaceship1, this.spaceship2,
+      this.ufoHandler, this.health);
+
+    if(this.health <= 0) {
+      this.state = State.GAMEOVER;
+      Observable.timer(3000).subscribe(() => {
+        this.nav.pop();
+      });
+    }
   }
 
   private renderFlyToStart(ctx: CanvasRenderingContext2D) {
@@ -259,6 +289,12 @@ export class GameComponent {
     ctx.font = "35px ChalkboardSE-Regular";
     ctx.textAlign = "center";
     ctx.fillText(this.helpText, DEVICE_WIDTH/2, 300);
+  }
+
+  private drawHealth(ctx: CanvasRenderingContext2D) {
+    for(var i = 0; i < this.health; i++) {
+      this.health_sprites[i].render(ctx, 20+(55*i), 20);
+    }
   }
 
   private subscribe() {
@@ -317,6 +353,11 @@ export class GameComponent {
         this.spaceship2.xPosition = move;
       });
 
-      //Update pointsystem (temporary feature)
+      // Updates health
+      this.collisionService.health$.subscribe(health => {
+        log("new health", health);
+        this.health = health;
+      });
+
     }
 }
