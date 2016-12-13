@@ -23,7 +23,7 @@ export class NormalBullet implements Bullet{
   }
 
   render(ctx: CanvasRenderingContext2D) {
-    ctx.fillStyle = 'green';
+    ctx.fillStyle = 'red';
     ctx.fillRect(this.xPosition, this.yPosition, 5, 15);
     this.yPosition-=10;
   }

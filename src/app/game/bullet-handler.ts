@@ -11,14 +11,7 @@ export class BulletHandler {
     this.bullets = [];
     this.bulletTimer = Observable.timer(100, 100);
     this.bulletTimer.subscribe(t => {
-      if(isMe) {
-        this.bullets.push(new NormalBullet(
-          this.spaceship.xPosition+this.spaceship.cannonPosition1X
-          , this.spaceship.yPosition+this.spaceship.cannonPosition1Y));
-        this.bullets.push(new NormalBullet(
-          this.spaceship.xPosition+this.spaceship.cannonPosition2X
-          , this.spaceship.yPosition+this.spaceship.cannonPosition2Y));
-      } else if(this.spaceship.visible) {
+      if(this.spaceship.visible){
         this.bullets.push(new NormalBullet(
           this.spaceship.visibleX+this.spaceship.cannonPosition1X
           , this.spaceship.yPosition+this.spaceship.cannonPosition1Y));
@@ -33,7 +26,7 @@ export class BulletHandler {
     var removeBullets = [];
     for(var i = 0; i < this.bullets.length; i++) {
       this.bullets[i].render(ctx);
-      if(this.bullets[i].yPosition < 0) {
+      if(this.bullets[i].yPosition < -30) {
         removeBullets.push(i);
       }
     }

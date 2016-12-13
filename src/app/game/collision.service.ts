@@ -5,15 +5,17 @@ import { Spaceship } from './spaceship';
 import {Observable}     from 'rxjs/Observable';
 import {Subject}  from 'rxjs/Subject';
 import {BluetoothService} from '../connection/bluetoothle.service';
-import {HEALTH_LOST} from '../Util/constants';
+import {HEALTH_LOST, EARTH_HEALTH_LOST} from '../Util/constants';
 
 @Injectable()
 export class CollisionService {
   //Observable sources
   healthSource = new Subject<number>();
+  earthHealthSource = new Subject<number>();
 
   //Observable streams
   health$ = this.healthSource.asObservable();
+  earthHealth$ = this.earthHealthSource.asObservable();
   
   // Model data
   private _playerId: number;
@@ -36,6 +38,17 @@ export class CollisionService {
       this.playerId
     ])
   }
+
+  sendEarthHealth(health: number) {
+    this.connection.send([
+      EARTH_HEALTH_LOST,
+      health,
+      health <= 0 ? true : false,
+      this.playerId
+    ])
+  }
+
+  
   /**
  * To save on bluetooth package space, small constants are used to send events.
  * msg[0] decides the type of event.
@@ -54,7 +67,10 @@ export class CollisionService {
 
     switch (msg[0]) {
       case HEALTH_LOST:
-          this.healthSource.next(msg[1]);
+        this.healthSource.next(msg[1]);
+        break;
+      case EARTH_HEALTH_LOST:
+        this.earthHealthSource.next(msg[1]);
         break;
     }
   }

@@ -15,6 +15,7 @@ export class GameService {
   private spaceshipMovingSource = new Subject<number>();
   private spaceshipMovingLeftSource = new Subject<boolean>();
   private spaceshipMovingRightSource = new Subject<boolean>();
+  private playersSource = new Subject<number>();
 
   // Observable string streams
   levelStart$ = this.levelStartSource.asObservable();
@@ -23,6 +24,7 @@ export class GameService {
   spaceshipMovingLeft$ = this.spaceshipMovingLeftSource.asObservable();
   spaceshipMovingRight$ = this.spaceshipMovingRightSource.asObservable();
   spaceshipMoving$ = this.spaceshipMovingSource.asObservable();
+  players$ = this.playersSource.asObservable();
 
   // Model data
   private _playerId: number;
@@ -40,6 +42,12 @@ export class GameService {
       console.log("started");
       this.levelStartSource.next(started)
     });
+
+    this.connection.playerAmount.subscribe(amount => {
+      console.log("players" + amount);
+      this.playersSource.next(amount);
+    })
+
     this.connection.subscribe().subscribe(this.msgReceived);
     // Test:
     //setTimeout(()=> {this.levelCompleteSource.next(-1)}, 3000);
@@ -91,6 +99,15 @@ export class GameService {
       x ? x : "",
       this.playerId
     ]);
+  }
+
+  sendHasStarted(){
+    this.connection.send([
+      "start",
+      "",
+      "",
+      2
+    ])
   }
 
   private isHost() {

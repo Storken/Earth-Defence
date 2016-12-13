@@ -23,7 +23,7 @@ export class CollisionHandler {
       //Check if spaceship1 has been hit by an ufo
       if(this.withinShip(spaceship1, ufos[index], true)) {
         log("ship1 hit", health);
-        removeUfos.push(index);
+        ufoHandler.removeUfo(index);
         health -= 1;
         this.collisionService.sendHealth(health);
       }
@@ -31,7 +31,7 @@ export class CollisionHandler {
       //Check if spaceship2 has been hit by an ufo
       else if(this.withinShip(spaceship2, ufos[index], false)) {
         log("ship2 hit", health);
-        removeUfos.push(index);
+        ufoHandler.removeUfo(index);
         health -= 1;
         this.collisionService.sendHealth(health);
       }

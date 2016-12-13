@@ -13,6 +13,7 @@ import { InitGameService } from './init-game/init-game.service';
 import { GameService } from './game/game.service';
 import { CollisionService } from './game/collision.service';
 import { NavController } from 'ionic-angular';
+import { GameboardService } from './game/gameboard.service';
 
 @NgModule({
   declarations: [
@@ -32,7 +33,7 @@ import { NavController } from 'ionic-angular';
     RoomComponent
   ],
   providers: [LogService, BluetoothService, Server,
-   Client, InitGameService,
+   Client, InitGameService, GameboardService,
    GameService, ErrorService, CollisionService]
 })
 export class AppModule {}

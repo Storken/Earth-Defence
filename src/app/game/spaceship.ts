@@ -36,7 +36,7 @@ export class Spaceship1 implements Spaceship {
   public cannonPosition2X: number;
   public cannonPosition2Y: number;
 
-  constructor(xpos: number, ypos: number, playerId: number, isMe: boolean,
+  constructor(xpos: number, ypos: number, private playerId: number, isMe: boolean,
       cannon1X: number, cannon1Y: number, cannon2X: number, cannon2Y: number) {
     this.xPosition = xpos;
     this.yPosition = ypos;
@@ -68,8 +68,16 @@ export class Spaceship1 implements Spaceship {
 
     this.visibleX = this.xPosition;
 
-    this.bulletHandler.render(ctx);
+    if(this.playerId == 0) {
+      this.bulletHandler.bullets = [];
+      ctx.beginPath();
+      ctx.arc(this.visibleX+45, this.yPosition+30, 90, Math.PI*2, Math.PI, true);
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 5;
+      ctx.stroke();
+    }
 
+    this.bulletHandler.render(ctx);
     this.sprite.render(ctx, this.xPosition, this.yPosition);
   }
 
@@ -152,6 +160,15 @@ export class Spaceship2 implements Spaceship {
       this.sprite.render(ctx, this.visibleX, this.yPosition);
     } else {
       this.sprite.render(ctx, DEVICE_WIDTH + 10, this.yPosition);
+    }
+
+    if(this.playerId == 0) {
+      this.bulletHandler.bullets = [];
+      ctx.beginPath();
+      ctx.arc(this.visibleX+45, this.yPosition+30, 90, Math.PI*2, Math.PI, true);
+      ctx.strokeStyle = "blue";
+      ctx.lineWidth = 5;
+      ctx.stroke();
     }
   }
 

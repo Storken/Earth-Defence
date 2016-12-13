@@ -1,5 +1,5 @@
-import { PURPLE_HARVEST, PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT
-        , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT} from '../Util/constants';
+import { PURPLE_HARVEST_2, PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT
+        , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT} from '../Util/constants';
 const IMG_URL = 'images/sprites/';
 
 export class SpaceshipSprite {
@@ -12,10 +12,10 @@ export class SpaceshipSprite {
     constructor(player: number) {
       switch (player) {
         case 0:
-          this.sprite = new Sprite(IMG_URL + 'spaceship1.png', 120, 115)
+          this.sprite = new Sprite(IMG_URL + 'spaceship1.png', SHIP_WIDTH, SHIP_HEIGHT)
           break;
         case 1:
-          this.sprite = new Sprite(IMG_URL + 'spaceship2.png', 120, 115)
+          this.sprite = new Sprite(IMG_URL + 'spaceship2.png', SHIP_WIDTH, SHIP_HEIGHT)
           break
       }
     }
@@ -27,7 +27,7 @@ export class UfoSprite {
 
     constructor(whichUfo : number) {
       switch (whichUfo) {
-        case PURPLE_HARVEST:
+        case PURPLE_HARVEST_2:
           this.sprite = new Sprite(IMG_URL + 'ufo1.png'
                                     , PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT);
           break;
@@ -42,6 +42,30 @@ export class UfoSprite {
 export class HealthSprite {
   private sprite = new Sprite(IMG_URL + 'healthpoint.png'
                               , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT);
+
+  constructor() {
+  }
+
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+      this.sprite.render(ctx, x, y);
+  }
+}
+
+
+export class EarthSprite {
+  private sprite = new Sprite(IMG_URL + 'earthHp.png'
+                              , 50, 50);
+
+  constructor() {
+  }
+
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+      this.sprite.render(ctx, x, y);
+  }
+}
+
+export class MotherCannonSprite {
+     private sprite = new Sprite(IMG_URL + 'mothercannon.png');
 
   constructor() {
   }
@@ -68,6 +92,7 @@ class Sprite {
         }
         this.noDraw = false;
     }
+    
     renderWithRotation(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
         ctx.translate(x, y);
         ctx.rotate(angle);

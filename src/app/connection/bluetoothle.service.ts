@@ -18,6 +18,8 @@ export class BluetoothService {
   private requestIdKey: number;
   private _started: Subject<boolean>;
   private startedRecently: boolean;
+  private playerLength: Subject<number>;
+  private playerLengthObs: Observable<number>;
 
   private msgSubject: Subject<any> = new Subject<any>();
 
@@ -30,6 +32,8 @@ export class BluetoothService {
     this.players = [];
     this._started = new Subject<boolean>();
     this.setUpSubScriptions();
+    this.playerLength = new Subject<number>();
+    this.playerLengthObs = this.playerLength.asObservable();
 
     this.server.getMessages().subscribe(message => {
       this.msgSubject.next(message);
@@ -39,6 +43,9 @@ export class BluetoothService {
     });
   }
 
+  get playerAmount() {
+    return this.playerLengthObs;
+  }
 
   get started() {
     return this._started.asObservable();
@@ -130,6 +137,7 @@ export class BluetoothService {
     // server is always player 0.
     let player = new Player();
     this.players.push(player);
+    this.playerLength.next(this.players.length);
     this.playerIdSubject.next(player.playerId);
     this.playerIdObs
     this.roomUid = serviceUid;
@@ -259,6 +267,7 @@ export class BluetoothService {
           // assign id:
           let player = new Player();
           this.players.push(player);
+          this.playerLength.next(this.players.length);
           msg[3] = player.playerId;
         }
         this.server.notify(msg, this.roomUid);
