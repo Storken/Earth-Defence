@@ -1,4 +1,4 @@
-import { Ufo, PurpleHarvestUfo, Path } from './ufo';
+import { Ufo, PurpleHarvestUfo, Path, MotherUfo } from './ufo';
 import { Spaceship } from './spaceship';
 import { DEVICE_WIDTH, PURPLE_HARVEST_2, PURPLE_HARVEST_HEIGHT
   , PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_1, PURPLE_HARVEST_0,
@@ -12,11 +12,13 @@ import { CollisionService } from './collision.service';
 
 export class UfoHandler {
   public ufos : Ufo[];
+  public mUfo : MotherUfo;
   private pathHandler : PathHandler;
 
   constructor(private ctx: CanvasRenderingContext2D) {
     this.ufos = [];
     this.pathHandler = new PathHandler();
+    this.mUfo = new MotherUfo();
   }
 
   addUfos(ufo : number, amount: number) {
@@ -45,6 +47,7 @@ export class UfoHandler {
     if(this.ufos == null) {
       this.ufos = [];
     }
+    this.mUfo.render(this.ctx);
     for(var i = 0; i < this.ufos.length; i++) {
         this.ufos[i].render(this.ctx);
         if(this.ufos[i].yPosition > DEVICE_HEIGHT - 50 - PURPLE_HARVEST_HEIGHT || this.ufos[i].path.length < 1) {

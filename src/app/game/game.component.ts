@@ -7,7 +7,8 @@ import { DEVICE_WIDTH, DEVICE_HEIGHT,
   SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_Y,
   SHIP_1_CANNON_2_X, SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y,
   SHIP_2_CANNON_2_Y, SHIP_2_CANNON_2_X, TUTORIAL_1_SOURCE,
-  TUTORIAL_2_SOURCE ,TUTORIAL_PAGES } from '../Util/constants';
+  TUTORIAL_2_SOURCE, TUTORIAL_3_SOURCE, TUTORIAL_4_SOURCE,
+  TUTORIAL_PAGES } from '../Util/constants';
 import { Observable } from 'rxjs/Rx';
 import { GameService } from './game.service';
 import { ListenerHandler } from '../Util/event-listener-handler';
@@ -17,7 +18,6 @@ import { CollisionHandler } from './collision-handler';
 import { HealthSprite, EarthSprite } from './sprite';
 import { NavController } from 'ionic-angular';
 import { GameboardService } from './gameboard.service';
-import { MotherUfo } from './ufo';
 
 /*
   Generated class for the Game page.
@@ -51,7 +51,6 @@ export class GameComponent {
 
     //ufo variables
     ufoHandler: UfoHandler;
-    motherUfo: MotherUfo;
 
     //player variables
     lastTouch: any;
@@ -60,7 +59,6 @@ export class GameComponent {
     private playerId: number;
     private moving: boolean;
     private moveSent: boolean;
-    private health: number;
 
     //game variables
     private context: CanvasRenderingContext2D;
@@ -73,10 +71,10 @@ export class GameComponent {
     private gameheight: number;
     private health_sprites: HealthSprite[];
     private timer: number;
-    private earthHealth: number;
     private earth_sprites: EarthSprite[];
     private tutorialClick: boolean;
     private ufoObs: any;
+    private laserObs: any;
 
   constructor(
     private gameService: GameService,
@@ -91,15 +89,12 @@ export class GameComponent {
     this.moving = false;
     this.moveSent = false;
     this.helpText = "";
-    this.health = 5;
     this.timer = 0;
     this.health_sprites = [new HealthSprite(), new HealthSprite(),
       new HealthSprite(), new HealthSprite(), new HealthSprite()];
-    this.earthHealth = 3;
     this.earth_sprites = [new EarthSprite(), new EarthSprite(),
       new EarthSprite()];
     this.tutorialClick = false;
-    this.motherUfo = new MotherUfo();
   }
 
   ionViewDidLoad() {
@@ -152,18 +147,32 @@ export class GameComponent {
 
     let startVal = 1000;
     if(this.gameService.playerId == 1) {
-      startVal = 3000;
+      startVal = 5000;
     }
 
     if(this.ufoObs != null) {
       this.ufoObs.unsubscribe();
     }
 
-    this.ufoObs = Observable.timer(startVal, 6000).subscribe(t => {
+    this.ufoObs = Observable.timer(startVal, 8000).subscribe(t => {
       log("added ufo", t);
       this.ufoHandler.addUfos(PURPLE_HARVEST_2, 1);
       log("amount of ufos in ufohandler", this.ufoHandler.amountOfUfos());
     });
+
+    if(this.laserObs != null) {
+      this.laserObs.unsubscribe();
+    }
+    
+    startVal = 2000;
+    if(this.gameService.playerId == 1) {
+      startVal = 6000;
+    }
+    this.laserObs = Observable.timer(startVal, 12000).subscribe(t => {
+      log("prepare lazor", t);
+      this.ufoHandler.mUfo.prepareLaser();
+    });
+
   }
 
   private prepGame(ctx: CanvasRenderingContext2D) {
@@ -287,18 +296,20 @@ export class GameComponent {
     this.helpText = "GAME OVER";
     if(this.touchDown) {
       this.gameService.requestStart();
-      this.health = 5;
-      this.earthHealth = 3;
-      this.collisionService.sendHealth(this.health);
-      this.collisionService.sendEarthHealth(this.earthHealth);
+      this.collisionHandler.health = 5;
+      this.collisionHandler.earthHealth = 3;
+      this.collisionService.sendHealth(this.collisionHandler.health);
+      this.collisionService.sendEarthHealth(this.collisionHandler.earthHealth);
       this.ufoHandler.removeAll();
     }
   }
 
   private renderPlaying(ctx: CanvasRenderingContext2D) {
+    let health = this.collisionHandler.health;
+    let earthHealth = this.collisionHandler.earthHealth;
     //Paint the earth
     let img = new Image();
-    switch (this.earthHealth) {
+    switch (earthHealth) {
       case 3: 
         img.src = "images/earth2.png";
         break;
@@ -319,27 +330,23 @@ export class GameComponent {
     motherImg.src = "images/sprites/motherufo.png";
     ctx.drawImage(motherImg, 0, 0);
 
-    //Paint motherships cannon
-    this.motherUfo.render(ctx);
-
     this.helpText = "";
 
     //Spaceship controllers
     this.spaceshipControllers();
 
+    //Draw ufos
+    earthHealth = this.ufoHandler.renderUfos(this.collisionService, earthHealth);
+
     //Draw Spaceships
     this.spaceship2.render(ctx);
     this.spaceship1.render(ctx);
-    
-
-    //Draw ufos
-    this.earthHealth = this.ufoHandler.renderUfos(this.collisionService, this.earthHealth);
 
     //Check for collisions
-    this.health = this.collisionHandler.check(this.spaceship1, this.spaceship2,
-      this.ufoHandler, this.health);
+    this.collisionHandler.check(this.spaceship1, this.spaceship2,
+      this.ufoHandler, earthHealth);
 
-    if(this.health <= 0 || this.earthHealth <= 0) {
+    if(this.collisionHandler.health <= 0 || this.collisionHandler.earthHealth <= 0) {
       this.state = State.GAMEOVER;
     }
   }
@@ -360,12 +367,20 @@ export class GameComponent {
 
       let img = new Image();
       switch (this.tutorialSequence) {
-        case 2:
+        case 4:
           img.src = TUTORIAL_1_SOURCE;
           ctx.drawImage(img, 0, 0);
           break;
-        case 1:
+        case 3:
           img.src = TUTORIAL_2_SOURCE;
+          ctx.drawImage(img, 0, 0);
+          break;
+        case 2:
+          img.src = TUTORIAL_3_SOURCE;
+          ctx.drawImage(img, 0, 0);
+          break;
+        case 1:
+          img.src = TUTORIAL_4_SOURCE;
           ctx.drawImage(img, 0, 0);
           break;
       }
@@ -392,11 +407,11 @@ export class GameComponent {
   }
 
   private drawHealth(ctx: CanvasRenderingContext2D) {
-    for(var i = 0; i < this.health; i++) {
+    for(var i = 0; i < this.collisionHandler.health; i++) {
       this.health_sprites[i].render(ctx, 20+(55*i), 20);
     }
 
-    for(var i = 0; i < this.earthHealth; i++) {
+    for(var i = 0; i < this.collisionHandler.earthHealth; i++) {
       this.earth_sprites[i].render(ctx, DEVICE_WIDTH-(70+55*i), 20);
     }
   }
@@ -469,13 +484,13 @@ export class GameComponent {
       // Updates health
       this.collisionService.health$.subscribe(health => {
         log("new health", health);
-        this.health = health;
+        this.collisionHandler.health = health;
       });
 
       // Updates health
       this.collisionService.earthHealth$.subscribe(earthHp => {
         log("new earth health", earthHp);
-        this.earthHealth = earthHp;
+        this.collisionHandler.earthHealth = earthHp;
       });
 
       this.gameService.players$.subscribe(amount => {

@@ -18,6 +18,7 @@ export interface Spaceship {
   render(ctx: CanvasRenderingContext2D);
   moveLeftRemote(move: boolean);
   moveRightRemote(move: boolean);
+  playerId: number;
 }
 
 export class Spaceship1 implements Spaceship {
@@ -36,7 +37,7 @@ export class Spaceship1 implements Spaceship {
   public cannonPosition2X: number;
   public cannonPosition2Y: number;
 
-  constructor(xpos: number, ypos: number, private playerId: number, isMe: boolean,
+  constructor(xpos: number, ypos: number, private player: number, isMe: boolean,
       cannon1X: number, cannon1Y: number, cannon2X: number, cannon2Y: number) {
     this.xPosition = xpos;
     this.yPosition = ypos;
@@ -44,13 +45,15 @@ export class Spaceship1 implements Spaceship {
     this.height = SHIP_HEIGHT;
     this.width = SHIP_WIDTH;
     this.visible = true;
-    this.sprite = new SpaceshipSprite(playerId);
+    this.sprite = new SpaceshipSprite(player);
     this.bulletHandler = new BulletHandler(this, isMe);
     this.cannonPosition1X = cannon1X;
     this.cannonPosition1Y = cannon1Y;
     this.cannonPosition2X = cannon2X;
     this.cannonPosition2Y = cannon2Y;
   }
+
+  get playerId(): number { return this.player == 0? 0 : 1; }
 
   render(ctx: CanvasRenderingContext2D) {
     if(this.mvRight) {
@@ -67,14 +70,12 @@ export class Spaceship1 implements Spaceship {
     }
 
     this.visibleX = this.xPosition;
-
-    if(this.playerId == 0) {
+    console.log(this.player);
+    if(this.player == 0) {
       this.bulletHandler.bullets = [];
-      ctx.beginPath();
-      ctx.arc(this.visibleX+45, this.yPosition+30, 90, Math.PI*2, Math.PI, true);
-      ctx.strokeStyle = "blue";
-      ctx.lineWidth = 5;
-      ctx.stroke();
+      let img = new Image();
+      img.src = 'images/sprites/shipshield.png';
+      ctx.drawImage(img, this.visibleX-((160-SHIP_WIDTH)/2), this.yPosition-50);
     }
 
     this.bulletHandler.render(ctx);
@@ -114,11 +115,11 @@ export class Spaceship2 implements Spaceship {
   public cannonPosition2X: number;
   public cannonPosition2Y: number;
 
-  constructor(xpos: number, ypos: number, private playerId: number, private isMe: boolean,
+  constructor(xpos: number, ypos: number, private player: number, private isMe: boolean,
               cannon1X: number, cannon1Y: number, cannon2X: number, cannon2Y: number) {
     this.xPosition = xpos;
     this.yPosition = ypos;
-    this.sprite = new SpaceshipSprite(playerId);
+    this.sprite = new SpaceshipSprite(player);
     this.bulletHandler = new BulletHandler(this, isMe);
     this.visible = false;
     this.height = SHIP_HEIGHT;
@@ -128,6 +129,8 @@ export class Spaceship2 implements Spaceship {
     this.cannonPosition2X = cannon2X;
     this.cannonPosition2Y = cannon2Y;
   }
+
+  get playerId(): number { return this.player == 0? 0 : 1; }
 
   render(ctx: CanvasRenderingContext2D) {
     if(this.mvRight) {
@@ -155,6 +158,13 @@ export class Spaceship2 implements Spaceship {
     }
 
     this.bulletHandler.render(ctx);
+    console.log(this.player);
+    if(this.player == 0) {
+      this.bulletHandler.bullets = []
+      let img = new Image();
+      img.src = 'images/sprites/shipshield.png';
+      ctx.drawImage(img, this.visibleX-((160-SHIP_WIDTH)/2), this.yPosition-50);
+    }
 
     if(this.visible){
       this.sprite.render(ctx, this.visibleX, this.yPosition);
@@ -162,14 +172,6 @@ export class Spaceship2 implements Spaceship {
       this.sprite.render(ctx, DEVICE_WIDTH + 10, this.yPosition);
     }
 
-    if(this.playerId == 0) {
-      this.bulletHandler.bullets = [];
-      ctx.beginPath();
-      ctx.arc(this.visibleX+45, this.yPosition+30, 90, Math.PI*2, Math.PI, true);
-      ctx.strokeStyle = "blue";
-      ctx.lineWidth = 5;
-      ctx.stroke();
-    }
   }
 
   private moveLeft() {

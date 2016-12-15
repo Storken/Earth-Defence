@@ -4,12 +4,14 @@ const IMG_URL = 'images/sprites/';
 
 export class SpaceshipSprite {
     private sprite : Sprite;
+    private playerId : number;
 
     public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
         this.sprite.render(ctx, x, y);
     }
 
     constructor(player: number) {
+      this.playerId = player;
       switch (player) {
         case 0:
           this.sprite = new Sprite(IMG_URL + 'spaceship1.png', SHIP_WIDTH, SHIP_HEIGHT)
@@ -65,13 +67,45 @@ export class EarthSprite {
 }
 
 export class MotherCannonSprite {
-     private sprite = new Sprite(IMG_URL + 'mothercannon.png');
+  private sprite = new Sprite(IMG_URL + 'mothercannon.png');
+  private sprite1 = new Sprite(IMG_URL + 'mothercannon-glow50.png');
+  private sprite2 = new Sprite(IMG_URL + 'mothercannon-glow75.png');
+  private sprite3 = new Sprite(IMG_URL + 'mothercannon-glow100.png');
+  private sprite4 = new Sprite(IMG_URL + 'mothercannon-beam.png');
+  private sprite5 = new Sprite(IMG_URL + 'mothercannon-beam-2.png');
+  private si = 0;
+  private shield = false;
 
   constructor() {
   }
 
-  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
-      this.sprite.render(ctx, x, y);
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number, i: number) {
+      this.si = i;
+      switch(this.si) {
+        case 0:
+            this.sprite.render(ctx, x, y);
+            break;
+        case 1:
+            this.sprite1.render(ctx, x, y);
+            break;
+        case 2:
+            this.sprite2.render(ctx, x, y);
+            break;
+        case 3:
+            this.sprite3.render(ctx, x, y);
+            break;
+        case 4:
+            if(!this.shield) {
+                this.sprite4.render(ctx, x, y);
+            } else {
+                this.sprite5.render(ctx, x, y);
+            }
+            break;
+      }
+  }
+
+  shielded(b: boolean) {
+      this.shield = b;
   }
 }
 
@@ -92,14 +126,13 @@ class Sprite {
         }
         this.noDraw = false;
     }
-    
+
     renderWithRotation(ctx: CanvasRenderingContext2D, x: number, y: number, angle: number) {
         ctx.translate(x, y);
         ctx.rotate(angle);
         this.render(ctx, 0, 0);
         ctx.rotate(-angle);
         ctx.translate(-x, -y);
-
     }
 
     renderWithBlink(ctx: CanvasRenderingContext2D, x: number, y: number) {

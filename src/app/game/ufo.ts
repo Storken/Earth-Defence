@@ -4,6 +4,7 @@ import { PURPLE_HARVEST_0, PURPLE_HARVEST_1,
   PURPLE_HARVEST_HEIGHT, DEVICE_WIDTH } from '../Util/constants';
 import {PathHandler} from './path-handler';
 import { log } from '../Util/Log.service';
+import { Observable } from 'rxjs/Rx';
 
 export class Path {
   private xPosition: number;
@@ -98,6 +99,20 @@ export class MotherUfo {
   render(ctx: CanvasRenderingContext2D) {
     this.motherCannon.render(ctx);
   }
+
+  get xPosition(): number { return this.motherCannon.x; }
+
+  get yPosition(): number { return this.motherCannon.y; }
+
+  prepareLaser() {
+    this.motherCannon.prepareLaser();
+  }
+
+  shielded(b:boolean) {
+    this.motherCannon.shielded(b);
+  }
+
+  get firingMyLazor(): boolean { return this.motherCannon.i == 4;}
 }
 
 class MotherCannon {
@@ -105,27 +120,42 @@ class MotherCannon {
   y : number;
   location : number;
   private sprite = new MotherCannonSprite();
+  i : number;
 
   constructor() {
     this.x = DEVICE_WIDTH/2;
     this.y = 93;
     this.location = this.nextLocation();
+    this.i = 0;
   }
 
   render(ctx: CanvasRenderingContext2D) {
-    if(this.x == this.location) {
-      this.location = this.nextLocation();
-    } else {
-      if(this.x > this.location) {
-        this.x -= 1;
+    if(this.i == 0) {
+      if(this.x == this.location) {
+        this.location = this.nextLocation();
       } else {
-        this.x += 1;
+        if(this.x > this.location) {
+          this.x -= 1;
+        } else {
+          this.x += 1;
+        }
       }
     }
-    this.sprite.render(ctx, this.x, this.y);
+    this.sprite.render(ctx, this.x, this.y, this.i);
+  }
+
+  prepareLaser() {
+    Observable.timer(0, 1000).take(5).subscribe(t => {
+      this.i++;
+      this.i %= 5;
+    });
+  }
+
+  shielded(b: boolean) {
+    this.sprite.shielded(b);
   }
 
   private nextLocation(): number {
-    return Math.floor(Math.random()*(DEVICE_WIDTH-150));
+    return Math.floor(Math.random()*(DEVICE_WIDTH-200));
   }
 }

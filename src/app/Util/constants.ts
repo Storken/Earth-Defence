@@ -3,7 +3,9 @@ export const DEVICE_WIDTH = window.innerWidth;
 export const WAITING_FOR_OTHER_PLAYERS = "Väntar på en till spelare";
 export const TUTORIAL_1_SOURCE = 'images/tutorial1.png';
 export const TUTORIAL_2_SOURCE = 'images/tutorial2.png';
-export const TUTORIAL_PAGES = 2;
+export const TUTORIAL_3_SOURCE = 'images/tutorial3.png';
+export const TUTORIAL_4_SOURCE = 'images/tutorial4.png';
+export const TUTORIAL_PAGES = 4;
 
 //Bluetooth connection messages
 export const PLAYER_READY = "PR";
@@ -26,6 +28,9 @@ export const PURPLE_HARVEST_0 = 0;
 //Declare spaceship info
 export const SHIP_WIDTH = 90;
 export const SHIP_HEIGHT = 60;
+export const SHIP_SHIELD_WIDTH = 160;
+
+export const MUFO_CANNON_WIDTH = 180;
 
 //Ship1 cannon positions
 export const SHIP_1_CANNON_1_X = 10;
