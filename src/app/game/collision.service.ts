@@ -11,11 +11,9 @@ import {HEALTH_LOST, EARTH_HEALTH_LOST} from '../Util/constants';
 export class CollisionService {
   //Observable sources
   healthSource = new Subject<number>();
-  earthHealthSource = new Subject<number>();
 
   //Observable streams
   health$ = this.healthSource.asObservable();
-  earthHealth$ = this.earthHealthSource.asObservable();
   
   // Model data
   private _playerId: number;
@@ -33,15 +31,6 @@ export class CollisionService {
   sendHealth(health: number) {
     this.connection.send([
       HEALTH_LOST,
-      health,
-      health <= 0 ? true : false,
-      this.playerId
-    ])
-  }
-
-  sendEarthHealth(health: number) {
-    this.connection.send([
-      EARTH_HEALTH_LOST,
       health,
       health <= 0 ? true : false,
       this.playerId
@@ -68,9 +57,6 @@ export class CollisionService {
     switch (msg[0]) {
       case HEALTH_LOST:
         this.healthSource.next(msg[1]);
-        break;
-      case EARTH_HEALTH_LOST:
-        this.earthHealthSource.next(msg[1]);
         break;
     }
   }

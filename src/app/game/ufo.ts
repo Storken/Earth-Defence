@@ -5,6 +5,8 @@ import { PURPLE_HARVEST_0, PURPLE_HARVEST_1,
 import {PathHandler} from './path-handler';
 import { log } from '../Util/Log.service';
 import { Observable } from 'rxjs/Rx';
+import { CannonBulletHandler } from './cannon-bullet-handler';
+import { CollisionService } from './collision.service';
 
 export class Path {
   private xPosition: number;
@@ -91,22 +93,23 @@ export class PurpleHarvestUfo implements Ufo{
 
 export class MotherUfo {
   private motherCannon : MotherCannon;
+  cannonBulletHandler: CannonBulletHandler;
   
   constructor() {
     this.motherCannon = new MotherCannon();
+    this.cannonBulletHandler = new CannonBulletHandler(this.motherCannon);
   }
 
-  render(ctx: CanvasRenderingContext2D) {
+  render(ctx: CanvasRenderingContext2D, cs: CollisionService, hp: number): number {
     this.motherCannon.render(ctx);
+    hp = this.cannonBulletHandler.render(ctx, cs, hp);
+
+    return hp;
   }
 
   get xPosition(): number { return this.motherCannon.x; }
 
   get yPosition(): number { return this.motherCannon.y; }
-
-  prepareLaser() {
-    this.motherCannon.prepareLaser();
-  }
 
   shielded(b:boolean) {
     this.motherCannon.shielded(b);
@@ -115,7 +118,7 @@ export class MotherUfo {
   get firingMyLazor(): boolean { return this.motherCannon.i == 4;}
 }
 
-class MotherCannon {
+export class MotherCannon {
   x : number;
   y : number;
   location : number;

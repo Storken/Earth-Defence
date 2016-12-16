@@ -47,6 +47,8 @@ export const SHIP_2_CANNON_2_Y = 10;
 //Declare bullet info
 export const BULLET_NORMAL_WIDTH = 5;
 export const BULLET_NORMAL_HEIGHT = 15;
+export const BULLET_CANNON_WIDTH = 15;
+export const BULLET_CANNON_HEIGHT = 30;
 
 //Healthpoint constants
 export const HEALTHPOINT_WIDTH = 50;

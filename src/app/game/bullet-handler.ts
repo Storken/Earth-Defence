@@ -1,4 +1,3 @@
-import { Injectable } from '@angular/core';
 import { Bullet, NormalBullet } from './bullet';
 import { Observable } from 'rxjs/Rx';
 import { Spaceship } from './spaceship';

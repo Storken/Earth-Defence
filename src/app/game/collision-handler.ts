@@ -7,20 +7,43 @@ import { log } from '../Util/Log.service';
 import { SHIP_WIDTH, MUFO_CANNON_WIDTH, SHIP_SHIELD_WIDTH } from '../Util/constants';
 import { Observable } from 'rxjs/Rx';
 
+/*
+  So much logic -.-'
+  I should comment more.
+*/
+
 export class CollisionHandler {
   private obs : any;
   private obsDone : boolean;
   private obsUnsub : boolean;
   public health : number;
-  public earthHealth : number;
   private shielded : boolean;
 
   constructor(private collisionService: CollisionService) {
     this.obsDone = true;
     this.obsUnsub = false;
     this.health = 5;
-    this.earthHealth = 3;
     this.shielded = false;
+  }
+
+  shieldUpdate(spaceship1: Spaceship, spaceship2: Spaceship) {
+    spaceship1.coLocated = false;
+    spaceship2.coLocated = false;
+    if(spaceship1.playerId == 0) {
+      if(spaceship1.visibleX-((160-SHIP_WIDTH)/2) < spaceship2.visibleX) {
+        if(spaceship1.visibleX+(spaceship1.width)+((160-SHIP_WIDTH)/2) > spaceship2.visibleX+spaceship2.width) {
+          spaceship1.coLocated = true;
+          spaceship2.coLocated = true;
+        }
+      }
+    } else {
+      if(spaceship2.visibleX-((160-SHIP_WIDTH)/2) < spaceship1.visibleX) {
+        if(spaceship2.visibleX+(spaceship2.width)+((160-SHIP_WIDTH)/2) > spaceship1.visibleX+spaceship1.width) {
+          spaceship1.coLocated = true;
+          spaceship2.coLocated = true;
+        }
+      }
+    }
   }
 
   check(spaceship1: Spaceship, spaceship2: Spaceship, ufoHandler: UfoHandler, earthHp: number){
@@ -31,54 +54,64 @@ export class CollisionHandler {
     let removeUfos : number[] = [];
     let removeBullets1 : number[] = [];
     let removeBullets2 : number[] = [];
-    this.earthHealth = earthHp;
-  
-    //Check if the lazorbeam has hit anything
-    if(mUfo.firingMyLazor) {
-      if(this.obsDone) {
-        if(this.obs != null) {
-          this.obs.unsubscribe();
-        }
-        this.obsDone = false;
-        this.obs = Observable.timer(0, 100).take(11)
-        .subscribe(t => {
-          log("timer", t);
-          if(t == 9) {
-            if(!this.obsDone && this.withinMUfo(spaceship1, spaceship2, mUfo) == 0) {
-              this.earthHealth -= 1;
-              this.collisionService.sendEarthHealth(this.earthHealth);
-              log("obsDone false", this.earthHealth);
-            } else if (this.withinMUfo(spaceship1, spaceship2, mUfo) == 2) {
-              this.health -= 1;
-              this.collisionService.sendHealth(this.health);
-            }
-          log("timer is done", this.earthHealth);
-          }
-        }, e=> {}, () => {this.obsDone = true;});
-      }
+    this.health = earthHp;
+    
 
-      switch (this.withinMUfo(spaceship1, spaceship2, mUfo)) {
-        case 0:
-          this.shielded = false;
-          mUfo.shielded(this.shielded);
-          break;
-        case 1:
-          log("shielded", 1);
-          this.shielded = true;
-          mUfo.shielded(this.shielded);
-          break;
-        case 2:
-          log("shielded", 0);
-          this.shielded = true;
-          mUfo.shielded(this.shielded);
-          break;
+    if(mUfo != null) {
+      //Check if the lazorbeam has hit anything
+      if(mUfo.firingMyLazor) {
+        if(this.obsDone) {
+          if(this.obs != null) {
+            this.obs.unsubscribe();
+          }
+          this.obsDone = false;
+          this.obs = Observable.timer(0, 100).take(11)
+          .subscribe(t => {
+            log("timer", t);
+            if(t == 9) {
+              if(!this.obsDone && this.withinMUfo(spaceship1, spaceship2, mUfo) == 0) {
+                this.health -= 1;
+                this.collisionService.sendHealth(this.health);
+                log("obsDone false", this.health);
+              } 
+            log("timer is done", this.health);
+            }
+          }, e=> {}, () => {this.obsDone = true;});
+        }
+
+        switch (this.withinMUfo(spaceship1, spaceship2, mUfo)) {
+          case 0:
+            this.shielded = false;
+            mUfo.shielded(this.shielded);
+            break;
+          case 1:
+            log("shielded", 1);
+            this.shielded = true;
+            mUfo.shielded(this.shielded);
+            break;
+        }
       }
+      let removeCannonBullets = [];
+      for(var i = 0; i < mUfo.cannonBulletHandler.cannonBullets.length; i++) {
+        if(spaceship1.playerId == 0) {
+          if(this.withinLaserBullet(mUfo.cannonBulletHandler.cannonBullets[i], spaceship1)) {
+            spaceship1.charges += 1;
+            removeCannonBullets.push(i);
+          }
+        } else {
+          if(this.withinLaserBullet(mUfo.cannonBulletHandler.cannonBullets[i], spaceship2)) {
+            spaceship2.charges += 1;
+            removeCannonBullets.push(i);
+          }
+        }
+      }
+      mUfo.cannonBulletHandler.removeBullets(removeCannonBullets);
     }
 
     
     //Check if an ufo has been shot down
     for(var index = 0; index < ufos.length; index++) {
-
+      
       //Check if spaceship1 has been hit by an ufo
       if(this.withinShip(spaceship1, ufos[index], true)) {
         log("ship1 hit", this.health);
@@ -162,6 +195,19 @@ export class CollisionHandler {
     return false;
   }
 
+  private withinLaserBullet(bullet: Bullet, spaceship : Spaceship) : boolean{
+    if(spaceship.yPosition + spaceship.height >= bullet.yPosition) { //bottom of ufo > top of object
+      if(spaceship.yPosition -50 <= bullet.yPosition + bullet.height) { //top of ufo < bottom of object
+        if(spaceship.visibleX-((160-SHIP_WIDTH)/2)  < bullet.xPosition - bullet.width) { // object is within x positions of ufo
+          if(spaceship.visibleX + spaceship.width + ((160-SHIP_WIDTH)/2) > bullet.xPosition) { // object is within x positions of ufo
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
   /*
   returns
   0: earth is hit
@@ -174,29 +220,18 @@ export class CollisionHandler {
       if((spaceship1.visibleX-(SHIP_SHIELD_WIDTH-SHIP_WIDTH)/2) < mUfo.xPosition+55) {
         if(((spaceship1.visibleX-(SHIP_SHIELD_WIDTH-SHIP_WIDTH)/2)+SHIP_SHIELD_WIDTH) 
                                       > mUfo.xPosition+MUFO_CANNON_WIDTH-55) {
-          return 1;
+          if(spaceship1.coLocated) {
+            return 1;
+          }
         }
       }
     } else if(spaceship2.playerId == 0 && spaceship2.visible) {
       if((spaceship2.visibleX-(SHIP_SHIELD_WIDTH-SHIP_WIDTH)/2) < mUfo.xPosition+55) {
         if(((spaceship2.visibleX-(SHIP_SHIELD_WIDTH-SHIP_WIDTH)/2)+SHIP_SHIELD_WIDTH) 
                                       > mUfo.xPosition+MUFO_CANNON_WIDTH-55) {
-          return 1;
-        }
-      }
-    }
-
-    //Check if the unshielded ship blocked the laser and in that case lose a healthpoint
-    if(spaceship1.playerId == 1) {
-      if(spaceship1.visibleX < mUfo.xPosition+70) {
-        if(spaceship1.visibleX > mUfo.xPosition+MUFO_CANNON_WIDTH-70) {
-          return 2;
-        }
-      }
-    }  else {
-      if(spaceship2.visibleX < mUfo.xPosition+70) {
-        if(spaceship2.visibleX > mUfo.xPosition+MUFO_CANNON_WIDTH-70) {
-          return 2;
+          if(spaceship2.coLocated) {
+            return 1;
+          }
         }
       }
     }

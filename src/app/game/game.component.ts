@@ -55,7 +55,7 @@ export class GameComponent {
     //player variables
     lastTouch: any;
     touchDown: boolean;
-    private tutorialSequence: number;
+    //private tutorialSequence: number;
     private playerId: number;
     private moving: boolean;
     private moveSent: boolean;
@@ -71,10 +71,8 @@ export class GameComponent {
     private gameheight: number;
     private health_sprites: HealthSprite[];
     private timer: number;
-    private earth_sprites: EarthSprite[];
-    private tutorialClick: boolean;
+    //private tutorialClick: boolean;
     private ufoObs: any;
-    private laserObs: any;
 
   constructor(
     private gameService: GameService,
@@ -85,16 +83,14 @@ export class GameComponent {
     this.touchDown = false;
     this.state = State.FLY_TO_START
     //this.state = State.PLAYING; //web-check
-    this.tutorialSequence = TUTORIAL_PAGES;
+    //this.tutorialSequence = TUTORIAL_PAGES;
     this.moving = false;
     this.moveSent = false;
     this.helpText = "";
     this.timer = 0;
     this.health_sprites = [new HealthSprite(), new HealthSprite(),
       new HealthSprite(), new HealthSprite(), new HealthSprite()];
-    this.earth_sprites = [new EarthSprite(), new EarthSprite(),
-      new EarthSprite()];
-    this.tutorialClick = false;
+    //this.tutorialClick = false;
   }
 
   ionViewDidLoad() {
@@ -110,7 +106,6 @@ export class GameComponent {
 
     this.context = this.gameCanvas.nativeElement.getContext("2d");
     this.listenerHandler = new ListenerHandler(this.gameCanvas.nativeElement);
-    this.ufoHandler = new UfoHandler(this.context);
     //this.initShips(); // only for web dev
     this.subscribe();
     this.prepGame(this.context);
@@ -123,19 +118,19 @@ export class GameComponent {
     //initiate Spaceships
     if(this.gameService.playerId == 0){
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 30, 0, true,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 0, true,
         SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 30, 1, false,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 1, false,
         SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
     } else {
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 30, 1, false,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 1, false,
         SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 30, 0, true,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 0, true,
         SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
     }
 
@@ -144,35 +139,22 @@ export class GameComponent {
     this.gameService.playerId == 0 ? this.helpText = "Du är det blåa skeppet"
                          : this.helpText = "Du är det gula skeppet";
 
+    this.ufoHandler = new UfoHandler(this.context, this.gameService.playerId);
+
 
     let startVal = 1000;
     if(this.gameService.playerId == 1) {
-      startVal = 5000;
-    }
 
-    if(this.ufoObs != null) {
-      this.ufoObs.unsubscribe();
-    }
+      if(this.ufoObs != null) {
+        this.ufoObs.unsubscribe();
+      }
 
-    this.ufoObs = Observable.timer(startVal, 8000).subscribe(t => {
-      log("added ufo", t);
-      this.ufoHandler.addUfos(PURPLE_HARVEST_2, 1);
-      log("amount of ufos in ufohandler", this.ufoHandler.amountOfUfos());
-    });
-
-    if(this.laserObs != null) {
-      this.laserObs.unsubscribe();
+      this.ufoObs = Observable.timer(startVal, 4000).subscribe(t => {
+        log("added ufo", t);
+        this.ufoHandler.addUfos(PURPLE_HARVEST_2, 1);
+        log("amount of ufos in ufohandler", this.ufoHandler.amountOfUfos());
+      });
     }
-    
-    startVal = 2000;
-    if(this.gameService.playerId == 1) {
-      startVal = 6000;
-    }
-    this.laserObs = Observable.timer(startVal, 12000).subscribe(t => {
-      log("prepare lazor", t);
-      this.ufoHandler.mUfo.prepareLaser();
-    });
-
   }
 
   private prepGame(ctx: CanvasRenderingContext2D) {
@@ -297,20 +279,24 @@ export class GameComponent {
     if(this.touchDown) {
       this.gameService.requestStart();
       this.collisionHandler.health = 5;
-      this.collisionHandler.earthHealth = 3;
       this.collisionService.sendHealth(this.collisionHandler.health);
-      this.collisionService.sendEarthHealth(this.collisionHandler.earthHealth);
       this.ufoHandler.removeAll();
     }
   }
 
   private renderPlaying(ctx: CanvasRenderingContext2D) {
     let health = this.collisionHandler.health;
-    let earthHealth = this.collisionHandler.earthHealth;
     //Paint the earth
     let img = new Image();
-    switch (earthHealth) {
-      case 3: 
+    img.src = "images/earth.png";
+    switch (health) {
+      case 5:
+        img.src = "images/earth4.png";
+        break;
+      case 4:
+        img.src = "images/earth3.png";
+        break;
+      case 3:
         img.src = "images/earth2.png";
         break;
       case 2:
@@ -323,7 +309,7 @@ export class GameComponent {
         img.src = "images/earth.png";
         break;*/
     }
-    ctx.drawImage(img, 0, DEVICE_HEIGHT-55);
+    ctx.drawImage(img, 0, DEVICE_HEIGHT-80);
 
     //Paint the mothership
     let motherImg = new Image();
@@ -336,24 +322,25 @@ export class GameComponent {
     this.spaceshipControllers();
 
     //Draw ufos
-    earthHealth = this.ufoHandler.renderUfos(this.collisionService, earthHealth);
+    health = this.ufoHandler.renderUfos(this.collisionService, health);
 
     //Draw Spaceships
+    this.collisionHandler.shieldUpdate(this.spaceship1, this.spaceship2);
     this.spaceship2.render(ctx);
     this.spaceship1.render(ctx);
 
     //Check for collisions
     this.collisionHandler.check(this.spaceship1, this.spaceship2,
-      this.ufoHandler, earthHealth);
+      this.ufoHandler, health);
 
-    if(this.collisionHandler.health <= 0 || this.collisionHandler.earthHealth <= 0) {
+    if(this.collisionHandler.health <= 0 || this.collisionHandler.health <= 0) {
       this.state = State.GAMEOVER;
     }
   }
 
   private renderFlyToStart(ctx: CanvasRenderingContext2D) {
       this.helpText = WAITING_FOR_OTHER_PLAYERS;
-
+/*
       if(this.touchDown && !this.tutorialClick) {
         this.tutorialSequence -= 1;
         this.tutorialClick = true;
@@ -383,12 +370,25 @@ export class GameComponent {
           img.src = TUTORIAL_4_SOURCE;
           ctx.drawImage(img, 0, 0);
           break;
-      }
+      }*/
   }
 
   private renderReadyForPlay(ctx: CanvasRenderingContext2D) {
     //Spaceship controllers
     this.spaceshipControllers();
+
+    //Draw Spaceships
+    this.collisionHandler.shieldUpdate(this.spaceship1, this.spaceship2);
+    this.spaceship2.render(ctx);
+    this.spaceship1.render(ctx);
+
+    if(this.gameService.playerId == 0) {
+      ctx.fillStyle = "blue";
+      ctx.fillText("Du är blå", DEVICE_WIDTH/2, 350);
+    } else {
+      ctx.fillStyle = "yellow";
+      ctx.fillText("Du är gul", DEVICE_WIDTH/2, 350);
+    }
   
   }
 
@@ -410,10 +410,6 @@ export class GameComponent {
     for(var i = 0; i < this.collisionHandler.health; i++) {
       this.health_sprites[i].render(ctx, 20+(55*i), 20);
     }
-
-    for(var i = 0; i < this.collisionHandler.earthHealth; i++) {
-      this.earth_sprites[i].render(ctx, DEVICE_WIDTH-(70+55*i), 20);
-    }
   }
 
   private subscribe() {
@@ -431,10 +427,10 @@ export class GameComponent {
         log("start!", started);
         this.initShips();
         this.state = State.READY_FOR_PLAY;
-        Observable.timer(0, 1000).take(4).subscribe( t => {
+        Observable.timer(0, 1000).take(6).subscribe( t => {
           this.timer = t;
-          this.helpText = "Game starts in: " + (3-t);
-          if(t > 2) {
+          this.helpText = "Nivå 1 börjar om: " + (5-t);
+          if(t > 4) {
             this.state = State.PLAYING;                  
             
           }
@@ -453,6 +449,7 @@ export class GameComponent {
         this.playerId = newId;
         if (newId !== -1) {
           this.listenerHandler.removeListeners();
+          this.gameService.requestStart();
           log("new id !== -1", newId);
         }
       });
@@ -485,12 +482,6 @@ export class GameComponent {
       this.collisionService.health$.subscribe(health => {
         log("new health", health);
         this.collisionHandler.health = health;
-      });
-
-      // Updates health
-      this.collisionService.earthHealth$.subscribe(earthHp => {
-        log("new earth health", earthHp);
-        this.collisionHandler.earthHealth = earthHp;
       });
 
       this.gameService.players$.subscribe(amount => {

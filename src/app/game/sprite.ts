@@ -66,8 +66,20 @@ export class EarthSprite {
   }
 }
 
+export class CannonBulletSprite {
+  private sprite = new Sprite(IMG_URL + 'mothercannon-bullet.png'
+                              , 15, 30);
+
+  constructor() {
+  }
+
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+      this.sprite.render(ctx, x, y);
+  }
+}
+
 export class MotherCannonSprite {
-  private sprite = new Sprite(IMG_URL + 'mothercannon.png');
+  private sprite = new Sprite(IMG_URL + 'mothercannon-shielded.png');
   private sprite1 = new Sprite(IMG_URL + 'mothercannon-glow50.png');
   private sprite2 = new Sprite(IMG_URL + 'mothercannon-glow75.png');
   private sprite3 = new Sprite(IMG_URL + 'mothercannon-glow100.png');

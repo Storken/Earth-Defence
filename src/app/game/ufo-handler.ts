@@ -14,22 +14,28 @@ export class UfoHandler {
   public ufos : Ufo[];
   public mUfo : MotherUfo;
   private pathHandler : PathHandler;
+  private player : number;
 
-  constructor(private ctx: CanvasRenderingContext2D) {
-    this.ufos = [];
+  constructor(private ctx: CanvasRenderingContext2D, playerId: number) {
     this.pathHandler = new PathHandler();
-    this.mUfo = new MotherUfo();
+    this.player = playerId;
+    this.ufos = [];
+    if(playerId == 0) {
+      this.mUfo = new MotherUfo();
+    }
   }
 
   addUfos(ufo : number, amount: number) {
-    log("added ufos", ufo);
-    switch (ufo) {
-      case PURPLE_HARVEST_2:
- /*       Observable.timer(0, 200).takeUntil(Observable.timer(amount*200)).subscribe(t => {
+    if(this.player == 1) {
+      log("added ufos", ufo);
+      switch (ufo) {
+        case PURPLE_HARVEST_2:
+  /*       Observable.timer(0, 200).takeUntil(Observable.timer(amount*200)).subscribe(t => {
+            this.ufos.push(new PurpleHarvestUfo(UFO_PATH0, ufo));
+          });*/
           this.ufos.push(new PurpleHarvestUfo(UFO_PATH0, ufo));
-        });*/
-        this.ufos.push(new PurpleHarvestUfo(UFO_PATH0, ufo));
-        break;
+          break;
+      }
     }
   }
 
@@ -42,25 +48,29 @@ export class UfoHandler {
     this.ufos.splice(x, 1);
   }
 
-  renderUfos(cs : CollisionService, earthHp : number): number {
-    let removeUfon: number[] = [];
-    if(this.ufos == null) {
-      this.ufos = [];
-    }
-    this.mUfo.render(this.ctx);
-    for(var i = 0; i < this.ufos.length; i++) {
+  renderUfos(cs : CollisionService, hp : number): number {
+    if(this.player == 1) {
+      let removeUfon: number[] = [];
+      if(this.ufos == null) {
+        this.ufos = [];
+      }
+      for(var i = 0; i < this.ufos.length; i++) {
         this.ufos[i].render(this.ctx);
         if(this.ufos[i].yPosition > DEVICE_HEIGHT - 50 - PURPLE_HARVEST_HEIGHT || this.ufos[i].path.length < 1) {
           removeUfon.push(i);
         }
+      }
+      for(var i = 0; i < removeUfon.length; i++) {
+        this.removeUfo(i);
+        log("earth hit", hp);
+        cs.sendHealth(hp-1);
+        hp -= 1;
+      }
+    } else {
+      hp = this.mUfo.render(this.ctx, cs, hp);
     }
-    for(var i = 0; i < removeUfon.length; i++) {
-      this.removeUfo(i);
-      log("earth hit", earthHp);
-      cs.sendEarthHealth(earthHp-1);
-      earthHp -= 1;
-    }
-    return earthHp;
+    
+    return hp;
   }
 
   removeUfos(rmUfos: number[]) {
