@@ -98,7 +98,7 @@ export class MotherUfo {
   private health: number;
   private recentlyLostHealth : boolean;
   
-  constructor(private playerId: number) {
+  constructor(private playerId: number, private collisionService: CollisionService) {
     this.motherCannon = new MotherCannon(playerId);
     this.cannonBulletHandler = new CannonBulletHandler(this.motherCannon);
     this.recentlyLostHealth = false;
@@ -118,14 +118,17 @@ export class MotherUfo {
   get hp(): number {return this.health;}
   decreaseHp(fromOtherSide: boolean) { 
     log("from other side", fromOtherSide);
-    if((this.playerId == 0 || fromOtherSide) && !this.recentlyLostHealth ) {
+    if((this.playerId == 0) && !this.recentlyLostHealth ) {
       if(this.motherCannon.i != 0) {
         this.health-=1;
         this.recentlyLostHealth = true;
+        this.collisionService.sendMUfoHp(this.health);
         Observable.timer(1000).subscribe(t=> {
           this.recentlyLostHealth = false;
         });
       }
+    } else if (fromOtherSide) {
+        this.health-=1;
     }
   }
 

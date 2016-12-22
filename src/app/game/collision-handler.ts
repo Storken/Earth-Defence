@@ -138,12 +138,7 @@ export class CollisionHandler {
   }
 
   checkMufo(spaceship: Spaceship, mUfo: MotherUfo) {
-    if(mUfo.cannonBulletHandler != null) {
-      if(mUfo.hp != this.mUfoHealth) {
-        this.mUfoHealth = mUfo.hp;
-        this.collisionService.sendMUfoHp(mUfo.hp);
-      }
-
+    if(this.collisionService.playerId == 0) {
       //Check if the lazorbeam has hit anything
       if(mUfo.firingMyLazor) {
         if(this.obsDone) {

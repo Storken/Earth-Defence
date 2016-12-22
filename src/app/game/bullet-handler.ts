@@ -5,12 +5,14 @@ import { Spaceship } from './spaceship';
 export class BulletHandler {
   bullets : Bullet[];
   bulletTimer;
+  private pause: boolean;
 
   constructor(private spaceship: Spaceship, private isMe: boolean) {
     this.bullets = [];
     this.bulletTimer = Observable.timer(100, 100);
+    this.pause = false;
     this.bulletTimer.subscribe(t => {
-      if(this.spaceship.visible){
+      if(!this.pause){
         this.bullets.push(new NormalBullet(
           this.spaceship.visibleX+this.spaceship.cannonPosition1X
           , this.spaceship.yPosition+this.spaceship.cannonPosition1Y));
@@ -37,6 +39,13 @@ export class BulletHandler {
   removeBullets(s : number[]){
     for(let index of s) {
       this.bullets.splice(index, 1);
+    }
+  }
+
+  gamePaused(b: boolean){
+    this.pause = b;
+    for(var i = 0; i < this.bullets.length; i++) {
+      this.bullets[i].gamePaused(b);
     }
   }
 }

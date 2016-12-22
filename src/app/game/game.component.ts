@@ -41,6 +41,7 @@ enum State {
   READY_FOR_PLAY,
   PLAYING,
   GAMEOVER,
+  PAUSE,
   WIN
 }
 
@@ -162,7 +163,7 @@ export class GameComponent {
     this.gameService.playerId == 0 ? this.helpText = "Du är det blåa skeppet"
                          : this.helpText = "Du är det gula skeppet";
 
-    this.ufoHandler = new UfoHandler(this.context, this.gameService.playerId);
+    this.ufoHandler = new UfoHandler(this.context, this.gameService.playerId, this.collisionService);
 
 
     let startVal = 1000;
@@ -237,6 +238,9 @@ export class GameComponent {
         case(State.GAMEOVER):
           this.renderGameover(ctx);
           break;
+        case(State.PAUSE):
+          this.renderPause(ctx);
+          break;
         case(State.WIN):
           this.renderWin(ctx);
           break;
@@ -246,6 +250,11 @@ export class GameComponent {
     }
     //Draw health
     this.drawHealth(ctx);
+
+    //Draw pause button
+    let img = new Image();
+    img.src = "images/paus-btn.png";
+    ctx.drawImage(img, (DEVICE_WIDTH/2)-45, 30);
   }
 
   private buttonPressed(): boolean{
@@ -258,36 +267,96 @@ export class GameComponent {
       }
       return false;
   }
+  private pauseButtonPressed(): boolean{
+      if(this.lastTouch.x > (DEVICE_WIDTH/2)-45
+                && this.lastTouch.x < (DEVICE_WIDTH/2)+45) {
+        if(this.lastTouch.y > 320 && this.lastTouch.y < 420) {
+                  return true;
+          }
+      }
+      return false;
+  }
+  private pauseResumeButtonPressed(): boolean{
+      if(this.lastTouch.x > (DEVICE_WIDTH/2)-115
+                && this.lastTouch.x < (DEVICE_WIDTH/2)+115) {
+        if(this.lastTouch.y > 420 && this.lastTouch.y < 525) {
+                  return true;
+          }
+      }
+      return false;
+  }
+  private pauseRestartButtonPressed(): boolean{
+      if(this.lastTouch.x > (DEVICE_WIDTH/2)-115
+                && this.lastTouch.x < (DEVICE_WIDTH/2)+115) {
+        if(this.lastTouch.y > 525 && this.lastTouch.y < 630) {
+                  return true;
+          }
+      }
+      return false;
+  }
+  private pauseLeaveButtonPressed(): boolean{
+      if(this.lastTouch.x > (DEVICE_WIDTH/2)-115
+                && this.lastTouch.x < (DEVICE_WIDTH/2)+115) {
+        if(this.lastTouch.y > 0 && this.lastTouch.y < 70) {
+                  return true;
+          }
+      }
+      return false;
+  }
+  
 
   private spaceshipControllers() {
     if(this.touchDown) { //if movement is requested
-      if(this.buttonPressed()) {
-        if(this.spaceship1.loadLaser >= 4) {
-          this.laserActiveSource = LASER_BUTTON_5_ACTIVE_CLICKED_SOURCE;
-          if(this.gameService.playerId == 0 && !this.p0LaserButton) {
-            this.gameboardService.sendButtonPressed(true);
-            this.p0LaserButton = true;
-          } else if(this.gameService.playerId == 1 && !this.p1LaserButton) {
-            this.gameboardService.sendButtonPressed(true);
-            this.p1LaserButton = true;
-          }
+      if(this.state = State.PAUSE) {
+        if(this.pauseResumeButtonPressed()) {
+          this.state = State.PLAYING;
+          this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(false);
+          this.spaceship1.bulletHandler.gamePaused(false);
+          this.spaceship2.bulletHandler.gamePaused(false);
+        } else if(this.pauseRestartButtonPressed()) {
+          this.gameService.requestStart();
+          this.collisionHandler.health = 5;
+          this.collisionService.sendHealth(this.collisionHandler.health);
+          this.ufoHandler.removeAll();
+        } else if(this.pauseLeaveButtonPressed()) {
+
         }
       }
-      else if(this.lastTouch.x > DEVICE_WIDTH/2 && !this.moving){ //if right side of screen is pressed
-        log("MOVING RIGHT", this.spaceship1.xPosition);
-        this.spaceship1.moveRightRemote(true); // move ship right
-        this.moving = true;
-          //update the other screen that the ship is moving
-        log("MOVING RIGHT IN OTHER SCREEN", this.spaceship1.xPosition);
-        this.gameService.sendRightmovement(true);
+      else {
+        if(this.buttonPressed()) {
+          if(this.spaceship1.loadLaser >= 4) {
+            this.laserActiveSource = LASER_BUTTON_5_ACTIVE_CLICKED_SOURCE;
+            if(this.gameService.playerId == 0 && !this.p0LaserButton) {
+              this.gameboardService.sendButtonPressed(true);
+              this.p0LaserButton = true;
+            } else if(this.gameService.playerId == 1 && !this.p1LaserButton) {
+              this.gameboardService.sendButtonPressed(true);
+              this.p1LaserButton = true;
+            }
+          }
+        }
+        else if(this.pauseButtonPressed()) {
+          this.state = State.PAUSE;
+          this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(true);
+          this.spaceship1.bulletHandler.gamePaused(true);
+          this.spaceship2.bulletHandler.gamePaused(true);
+        }
+        else if(this.lastTouch.x > DEVICE_WIDTH/2 && !this.moving){ //if right side of screen is pressed
+          log("MOVING RIGHT", this.spaceship1.xPosition);
+          this.spaceship1.moveRightRemote(true); // move ship right
+          this.moving = true;
+            //update the other screen that the ship is moving
+          log("MOVING RIGHT IN OTHER SCREEN", this.spaceship1.xPosition);
+          this.gameService.sendRightmovement(true);
 
-      } else if (this.lastTouch.x < DEVICE_WIDTH/2 && !this.moving) { //if left side of screen is pressed
-        log("MOVING LEFT", this.spaceship1.xPosition);
-        this.moving = true;
-        this.spaceship1.moveLeftRemote(true); // move ship left
-          //update the other screen that the ship is moving
-        log("MOVING LEFT IN OTHER SCREEN", this.spaceship1.xPosition);
-        this.gameService.sendLeftmovement(true); // move ship in other screen
+        } else if (this.lastTouch.x < DEVICE_WIDTH/2 && !this.moving) { //if left side of screen is pressed
+          log("MOVING LEFT", this.spaceship1.xPosition);
+          this.moving = true;
+          this.spaceship1.moveLeftRemote(true); // move ship left
+            //update the other screen that the ship is moving
+          log("MOVING LEFT IN OTHER SCREEN", this.spaceship1.xPosition);
+          this.gameService.sendLeftmovement(true); // move ship in other screen
+        }
       }
     } else {
       if(this.moving){
@@ -307,8 +376,17 @@ export class GameComponent {
         this.laserActiveSource = LASER_BUTTON_5_ACTIVE_SOURCE;
         this.gameboardService.sendButtonPressed(false);
       }
+    
     }
+  }
+    
 
+  private renderPause(ctx: CanvasRenderingContext2D){
+    let img = new Image();
+    img.src = "images/paus-scene.png";
+    ctx.drawImage(img, 0, 0);
+
+    
   }
 
     //Clear canvas for updated draw
@@ -493,7 +571,7 @@ export class GameComponent {
     ctx.textAlign = "center";
     ctx.fillText(this.helpText, DEVICE_WIDTH/2, 300);
     if(this.state == State.GAMEOVER || this.state == State.WIN) {
-      ctx.fillText("Klicka på båda skärmarna för att starta igen", DEVICE_WIDTH/2, 350);
+      ctx.fillText("Klicka på en av skärmarna för att starta igen", DEVICE_WIDTH/2, 350);
     }
   }
 
@@ -636,9 +714,7 @@ export class GameComponent {
 
       this.collisionService.mufoHealth$.subscribe(hp => {
         log("new health on mufo", hp);
-        if(this.ufoHandler.mUfo.hp != hp) {
-          this.ufoHandler.mUfo.decreaseHp(true);
-        }
-      })
+        this.ufoHandler.mUfo.decreaseHp(true);
+      });
     }
 }

@@ -7,6 +7,7 @@ export interface Bullet {
   width: number;
   height: number;
   render(ctx: CanvasRenderingContext2D);
+  gamePaused(b: boolean);
 }
 
 export class NormalBullet implements Bullet{
@@ -14,17 +15,25 @@ export class NormalBullet implements Bullet{
   public yPosition: number;
   public width: number;
   public height: number;
+  private pause: boolean;
 
   constructor(x: number, y: number) {
     this.xPosition = x;
     this.yPosition = y;
     this.width = BULLET_NORMAL_WIDTH;
     this.height = BULLET_NORMAL_HEIGHT;
+    this.pause = false;
   }
 
   render(ctx: CanvasRenderingContext2D) {
     ctx.fillStyle = 'red';
     ctx.fillRect(this.xPosition, this.yPosition, 5, 15);
-    this.yPosition-=10;
+    if(!this.pause) {
+      this.yPosition-=10;
+    }
+  }
+
+  gamePaused(b: boolean) {
+    this.pause = b;
   }
 }

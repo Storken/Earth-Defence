@@ -9,6 +9,7 @@ export class CannonBullet implements Bullet{
   public width = 15;
   public height = 30;
   private sprite = new CannonBulletSprite();
+  private pause = false;
 
   constructor(x: number, y: number) {
     this.xPosition = x;
@@ -17,10 +18,16 @@ export class CannonBullet implements Bullet{
 
   render(ctx: CanvasRenderingContext2D) {
     this.sprite.render(ctx, this.xPosition, this.yPosition);
-    this.nextPosition();
+    if(!this.pause) {
+      this.nextPosition();
+    }
   }
 
   private nextPosition(){
       this.yPosition+=10;
+  }
+
+  gamePaused(b: boolean) {
+    this.pause = b;
   }
 }

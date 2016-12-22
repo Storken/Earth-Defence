@@ -17,11 +17,11 @@ export class UfoHandler {
   private pathHandler : PathHandler;
   private player : number;
 
-  constructor(private ctx: CanvasRenderingContext2D, playerId: number) {
+  constructor(private ctx: CanvasRenderingContext2D, playerId: number, private collisionService : CollisionService) {
     this.pathHandler = new PathHandler();
     this.player = playerId;
     this.ufos = [];
-    this.mUfo = new MotherUfo(playerId);
+    this.mUfo = new MotherUfo(playerId, collisionService);
   }
 
   addUfos(ufo : number, amount: number) {
