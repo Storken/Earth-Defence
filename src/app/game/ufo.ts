@@ -7,6 +7,7 @@ import { log } from '../Util/Log.service';
 import { Observable } from 'rxjs/Rx';
 import { CannonBulletHandler } from './cannon-bullet-handler';
 import { CollisionService } from './collision.service';
+import { Spaceship } from './spaceship';
 
 export class Path {
   private xPosition: number;
@@ -94,17 +95,38 @@ export class PurpleHarvestUfo implements Ufo{
 export class MotherUfo {
   private motherCannon : MotherCannon;
   cannonBulletHandler: CannonBulletHandler;
+  private health: number;
+  private recentlyLostHealth : boolean;
   
-  constructor() {
-    this.motherCannon = new MotherCannon();
+  constructor(private playerId: number) {
+    this.motherCannon = new MotherCannon(playerId);
     this.cannonBulletHandler = new CannonBulletHandler(this.motherCannon);
+    this.recentlyLostHealth = false;
+    this.health = 5;
   }
 
-  render(ctx: CanvasRenderingContext2D, cs: CollisionService, hp: number): number {
-    this.motherCannon.render(ctx);
-    hp = this.cannonBulletHandler.render(ctx, cs, hp);
+  render(ctx: CanvasRenderingContext2D) {
+    if(this.playerId == 0) {
+      this.motherCannon.render(ctx);
+      this.cannonBulletHandler.render(ctx);
+    } else {
+      this.cannonBulletHandler.cannonBullets = [];
+      this.motherCannon.x = DEVICE_WIDTH*2;
+    }
+  }
 
-    return hp;
+  get hp(): number {return this.health;}
+  decreaseHp(fromOtherSide: boolean) { 
+    log("from other side", fromOtherSide);
+    if((this.playerId == 0 || fromOtherSide) && !this.recentlyLostHealth ) {
+      if(this.motherCannon.i != 0) {
+        this.health-=1;
+        this.recentlyLostHealth = true;
+        Observable.timer(1000).subscribe(t=> {
+          this.recentlyLostHealth = false;
+        });
+      }
+    }
   }
 
   get xPosition(): number { return this.motherCannon.x; }
@@ -115,6 +137,8 @@ export class MotherUfo {
     this.motherCannon.shielded(b);
   }
 
+  get charging(): boolean { return this.motherCannon.i != 0;}
+
   get firingMyLazor(): boolean { return this.motherCannon.i == 4;}
 }
 
@@ -124,12 +148,14 @@ export class MotherCannon {
   location : number;
   private sprite = new MotherCannonSprite();
   i : number;
+  player : number;
 
-  constructor() {
+  constructor(p: number) {
     this.x = DEVICE_WIDTH/2;
     this.y = 93;
     this.location = this.nextLocation();
     this.i = 0;
+    this.player = p;
   }
 
   render(ctx: CanvasRenderingContext2D) {
@@ -148,10 +174,12 @@ export class MotherCannon {
   }
 
   prepareLaser() {
-    Observable.timer(0, 1000).take(5).subscribe(t => {
-      this.i++;
-      this.i %= 5;
-    });
+    if(this.player == 0) {
+      Observable.timer(0, 1000).take(5).subscribe(t => {
+        this.i++;
+        this.i %= 5;
+      });
+    }
   }
 
   shielded(b: boolean) {

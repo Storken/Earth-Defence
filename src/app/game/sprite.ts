@@ -53,6 +53,18 @@ export class HealthSprite {
   }
 }
 
+export class MUfoHealthSprite {
+  private sprite = new Sprite(IMG_URL + 'mothership-health.png'
+                              , 35, 50);
+
+  constructor() {
+  }
+
+  public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
+      this.sprite.render(ctx, x, y);
+  }
+}
+
 
 export class EarthSprite {
   private sprite = new Sprite(IMG_URL + 'earthHp.png'

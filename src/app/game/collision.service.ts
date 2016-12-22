@@ -5,15 +5,20 @@ import { Spaceship } from './spaceship';
 import {Observable}     from 'rxjs/Observable';
 import {Subject}  from 'rxjs/Subject';
 import {BluetoothService} from '../connection/bluetoothle.service';
-import {HEALTH_LOST, EARTH_HEALTH_LOST} from '../Util/constants';
+import {HEALTH_LOST, EARTH_HEALTH_LOST, 
+  CHARGES_UPDATED, MUFO_HEALTH_LOSS} from '../Util/constants';
 
 @Injectable()
 export class CollisionService {
   //Observable sources
   healthSource = new Subject<number>();
+  chargesSource = new Subject<number>();
+  mufoHealthSource = new Subject<number>();
 
   //Observable streams
   health$ = this.healthSource.asObservable();
+  charges$ = this.chargesSource.asObservable()
+  mufoHealth$ = this.mufoHealthSource.asObservable();
   
   // Model data
   private _playerId: number;
@@ -33,6 +38,24 @@ export class CollisionService {
       HEALTH_LOST,
       health,
       health <= 0 ? true : false,
+      this.playerId
+    ])
+  }
+
+  sendMUfoHp(health: number) {
+    this.connection.send([
+      MUFO_HEALTH_LOSS,
+      health,
+      "",
+      this.playerId
+    ])
+  }
+
+  sendCharges(charges: number) {
+    this.connection.send([
+      CHARGES_UPDATED,
+      charges,
+      "",
       this.playerId
     ])
   }
@@ -57,6 +80,12 @@ export class CollisionService {
     switch (msg[0]) {
       case HEALTH_LOST:
         this.healthSource.next(msg[1]);
+        break;
+      case CHARGES_UPDATED:
+        this.chargesSource.next(msg[1]);
+        break;
+      case MUFO_HEALTH_LOSS:
+        this.mufoHealthSource.next(msg[1]);
         break;
     }
   }

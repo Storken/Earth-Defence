@@ -2,16 +2,16 @@ import { Injectable } from '@angular/core';
 import {Observable}     from 'rxjs/Observable';
 import {Subject}  from 'rxjs/Subject';
 import {BluetoothService} from '../connection/bluetoothle.service';
-import { INCOMING_UFO } from '../Util/constants';
+import { BUTTON_PRESSED } from '../Util/constants';
 import { PurpleHarvestUfo, Ufo } from './ufo';
 
 @Injectable()
 export class GameboardService {
     // Observable sources
-    private incomingUfoSource = new Subject<Ufo>();
+    private buttonPressedSource = new Subject<boolean>();
 
     // Observable source streams
-    public incomingUfo$ = this.incomingUfoSource.asObservable();
+    public buttonPressed$ = this.buttonPressedSource.asObservable();
 
     // Model data
     private _playerId: number;
@@ -26,6 +26,14 @@ export class GameboardService {
     this.connection.subscribe().subscribe(this.msgReceived);
     }
 
+    sendButtonPressed(pressed: boolean) {
+        this.connection.send([
+            BUTTON_PRESSED,
+            pressed,
+            "",
+            this.playerId
+        ]);
+    }
       /**
  * To save on bluetooth package space, small constants are used to send events.
  * msg[0] decides the type of event.
@@ -41,6 +49,10 @@ export class GameboardService {
       console.log("From me!");
       return;
     }
-
+    switch(msg[0]) {
+        case BUTTON_PRESSED:
+            this.buttonPressedSource.next(msg[1]);
+            break;
+    }
   } 
 }

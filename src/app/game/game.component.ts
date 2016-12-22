@@ -8,14 +8,14 @@ import { DEVICE_WIDTH, DEVICE_HEIGHT,
   SHIP_1_CANNON_2_X, SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y,
   SHIP_2_CANNON_2_Y, SHIP_2_CANNON_2_X, TUTORIAL_1_SOURCE,
   TUTORIAL_2_SOURCE, TUTORIAL_3_SOURCE, TUTORIAL_4_SOURCE,
-  TUTORIAL_PAGES } from '../Util/constants';
+  TUTORIAL_PAGES, LASER_BUTTON_WIDTH, LASER_BUTTON_HEIGHT } from '../Util/constants';
 import { Observable } from 'rxjs/Rx';
 import { GameService } from './game.service';
 import { ListenerHandler } from '../Util/event-listener-handler';
 import { UfoHandler } from './ufo-handler';
 import { CollisionService } from './collision.service';
 import { CollisionHandler } from './collision-handler';
-import { HealthSprite, EarthSprite } from './sprite';
+import { HealthSprite, EarthSprite, MUfoHealthSprite } from './sprite';
 import { NavController } from 'ionic-angular';
 import { GameboardService } from './gameboard.service';
 
@@ -26,11 +26,22 @@ import { GameboardService } from './gameboard.service';
   Ionic pages and navigation.
 */
 
+//laser button source constants
+const LASER_BUTTON_0_SOURCE = 'images/sprites/ship-laser-btn-0.png';
+const LASER_BUTTON_1_SOURCE = 'images/sprites/ship-laser-btn-1.png';
+const LASER_BUTTON_2_SOURCE = 'images/sprites/ship-laser-btn-2.png';
+const LASER_BUTTON_3_SOURCE = 'images/sprites/ship-laser-btn-3.png';
+const LASER_BUTTON_4_SOURCE = 'images/sprites/ship-laser-btn-4.png';
+const LASER_BUTTON_5_SOURCE = 'images/sprites/ship-laser-btn-5.png';
+const LASER_BUTTON_5_ACTIVE_SOURCE = 'images/sprites/ship-laser-btn-5-active.png';
+const LASER_BUTTON_5_ACTIVE_CLICKED_SOURCE = 'images/sprites/ship-laser-btn-5-active-clicked.png';
+
 enum State {
   FLY_TO_START,
   READY_FOR_PLAY,
   PLAYING,
-  GAMEOVER
+  GAMEOVER,
+  WIN
 }
 
 @Component({
@@ -70,7 +81,13 @@ export class GameComponent {
     private gamewidth: number;
     private gameheight: number;
     private health_sprites: HealthSprite[];
+    private mufo_health_sprites: MUfoHealthSprite[];
     private timer: number;
+    private p0LaserButton: boolean;
+    private p1LaserButton: boolean;
+    private laserObs: any;
+    private laserObsCreated: boolean;
+    private laserActiveSource: string;
     //private tutorialClick: boolean;
     private ufoObs: any;
 
@@ -90,7 +107,13 @@ export class GameComponent {
     this.timer = 0;
     this.health_sprites = [new HealthSprite(), new HealthSprite(),
       new HealthSprite(), new HealthSprite(), new HealthSprite()];
+    this.mufo_health_sprites = [new MUfoHealthSprite(), new MUfoHealthSprite(),
+      new MUfoHealthSprite(), new MUfoHealthSprite(), new MUfoHealthSprite()];
     //this.tutorialClick = false;
+    this.p0LaserButton = false;
+    this.p1LaserButton = false;
+    this.laserObsCreated = false;
+    this.laserActiveSource = LASER_BUTTON_5_ACTIVE_SOURCE;
   }
 
   ionViewDidLoad() {
@@ -118,19 +141,19 @@ export class GameComponent {
     //initiate Spaceships
     if(this.gameService.playerId == 0){
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 0, true,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 70, 0, true,
         SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 1, false,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 70, 1, false,
         SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
     } else {
       this.spaceship1 = new Spaceship1(Math.floor(DEVICE_WIDTH/4)
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 1, false,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 70, 1, false,
         SHIP_2_CANNON_1_X, SHIP_2_CANNON_1_Y, SHIP_2_CANNON_2_X, SHIP_2_CANNON_2_Y);
 
       this.spaceship2 = new Spaceship2(Math.floor(DEVICE_WIDTH - (DEVICE_WIDTH/4))
-        , DEVICE_HEIGHT - SHIP_HEIGHT - 50, 0, true,
+        , DEVICE_HEIGHT - SHIP_HEIGHT - 70, 0, true,
         SHIP_1_CANNON_1_X, SHIP_1_CANNON_1_Y, SHIP_1_CANNON_2_X, SHIP_1_CANNON_2_Y);
     }
 
@@ -214,6 +237,9 @@ export class GameComponent {
         case(State.GAMEOVER):
           this.renderGameover(ctx);
           break;
+        case(State.WIN):
+          this.renderWin(ctx);
+          break;
         default:
           this.renderFlyToStart(ctx);
           break;
@@ -222,9 +248,32 @@ export class GameComponent {
     this.drawHealth(ctx);
   }
 
+  private buttonPressed(): boolean{
+      if(this.lastTouch.x > (DEVICE_WIDTH/2)-(LASER_BUTTON_WIDTH/2)
+                && this.lastTouch.x < (DEVICE_WIDTH/2)+(LASER_BUTTON_WIDTH/2)) {
+        if(this.lastTouch.y > DEVICE_HEIGHT-LASER_BUTTON_HEIGHT-15 
+                && this.lastTouch.y < DEVICE_HEIGHT) {
+                  return true;
+          }
+      }
+      return false;
+  }
+
   private spaceshipControllers() {
     if(this.touchDown) { //if movement is requested
-      if(this.lastTouch.x > DEVICE_WIDTH/2 && !this.moving){ //if right side of screen is pressed
+      if(this.buttonPressed()) {
+        if(this.spaceship1.loadLaser >= 4) {
+          this.laserActiveSource = LASER_BUTTON_5_ACTIVE_CLICKED_SOURCE;
+          if(this.gameService.playerId == 0 && !this.p0LaserButton) {
+            this.gameboardService.sendButtonPressed(true);
+            this.p0LaserButton = true;
+          } else if(this.gameService.playerId == 1 && !this.p1LaserButton) {
+            this.gameboardService.sendButtonPressed(true);
+            this.p1LaserButton = true;
+          }
+        }
+      }
+      else if(this.lastTouch.x > DEVICE_WIDTH/2 && !this.moving){ //if right side of screen is pressed
         log("MOVING RIGHT", this.spaceship1.xPosition);
         this.spaceship1.moveRightRemote(true); // move ship right
         this.moving = true;
@@ -248,6 +297,15 @@ export class GameComponent {
         this.gameService.sendLeftmovement(false, this.spaceship1.xPosition);
         console.log(this.spaceship2.xPosition);
         this.moving = false;
+      }
+      if(this.gameService.playerId == 0 && this.p0LaserButton) {
+        this.p0LaserButton = false;
+        this.laserActiveSource = LASER_BUTTON_5_ACTIVE_SOURCE;
+        this.gameboardService.sendButtonPressed(false);
+      } else if(this.gameService.playerId == 1 && this.p1LaserButton){
+        this.p1LaserButton = false;
+        this.laserActiveSource = LASER_BUTTON_5_ACTIVE_SOURCE;
+        this.gameboardService.sendButtonPressed(false);
       }
     }
 
@@ -284,32 +342,19 @@ export class GameComponent {
     }
   }
 
-  private renderPlaying(ctx: CanvasRenderingContext2D) {
-    let health = this.collisionHandler.health;
-    //Paint the earth
-    let img = new Image();
-    img.src = "images/earth.png";
-    switch (health) {
-      case 5:
-        img.src = "images/earth4.png";
-        break;
-      case 4:
-        img.src = "images/earth3.png";
-        break;
-      case 3:
-        img.src = "images/earth2.png";
-        break;
-      case 2:
-        img.src = "images/earth1.png";
-        break;
-      case 1:
-        img.src = "images/earth.png";
-        break;
-    /*case 0:
-        img.src = "images/earth.png";
-        break;*/
+  private renderWin(ctx: CanvasRenderingContext2D) {
+    this.helpText = "NI LYCKADES BEKÄMPA UTOMJORDINGARNA!";
+    if(this.touchDown) {
+      this.gameService.requestStart();
+      this.collisionHandler.health = 5;
+      this.collisionService.sendHealth(this.collisionHandler.health);
+      this.ufoHandler.removeAll();
     }
-    ctx.drawImage(img, 0, DEVICE_HEIGHT-80);
+  }
+
+  private renderPlaying(ctx: CanvasRenderingContext2D) {
+    var health = this.collisionHandler.health;
+    this.renderEarth(ctx, health);
 
     //Paint the mothership
     let motherImg = new Image();
@@ -322,7 +367,7 @@ export class GameComponent {
     this.spaceshipControllers();
 
     //Draw ufos
-    health = this.ufoHandler.renderUfos(this.collisionService, health);
+    this.ufoHandler.renderUfos();
 
     //Draw Spaceships
     this.collisionHandler.shieldUpdate(this.spaceship1, this.spaceship2);
@@ -333,9 +378,53 @@ export class GameComponent {
     this.collisionHandler.check(this.spaceship1, this.spaceship2,
       this.ufoHandler, health);
 
-    if(this.collisionHandler.health <= 0 || this.collisionHandler.health <= 0) {
-      this.state = State.GAMEOVER;
+    //Laserbutton logic
+    if(this.playerId == 0) {
+      this.renderLaserButton(ctx, this.spaceship1.charges, this.spaceship1.loadedLaser);
+    } else {
+      this.renderLaserButton(ctx, this.spaceship2.charges, this.spaceship2.loadedLaser);
     }
+
+    if(this.p0LaserButton && this.p1LaserButton) {
+        this.spaceship1.fireLaser(this.ufoHandler.mUfo);
+        this.spaceship2.fireLaser(this.ufoHandler.mUfo);
+    }
+
+    if(this.collisionHandler.health <= 0) {
+      this.state = State.GAMEOVER;
+    } else if (this.ufoHandler.mUfo.hp <= 0) {
+      this.state = State.WIN;
+    }
+
+    this.drawMUfoHealth(ctx);
+  }
+
+  private renderLaserButton(ctx: CanvasRenderingContext2D, charges: number, loadedLaser: boolean) {
+    let img = new Image();
+    switch(charges) {
+      case 0:
+        img.src = LASER_BUTTON_0_SOURCE;
+        break;
+      case 1:
+        img.src = LASER_BUTTON_1_SOURCE;
+        break;
+      case 2:
+        img.src = LASER_BUTTON_2_SOURCE;
+        break;
+      case 3:
+        img.src = LASER_BUTTON_3_SOURCE;
+        break;
+      case 4:
+        img.src = LASER_BUTTON_4_SOURCE;
+        break;
+      case 5:
+        img.src = LASER_BUTTON_5_SOURCE;
+        if(loadedLaser) {
+          img.src = this.laserActiveSource;
+        }
+        break;
+    }
+    ctx.drawImage(img, (DEVICE_WIDTH/2)-(LASER_BUTTON_WIDTH/2), DEVICE_HEIGHT-LASER_BUTTON_HEIGHT-15);
   }
 
   private renderFlyToStart(ctx: CanvasRenderingContext2D) {
@@ -374,6 +463,8 @@ export class GameComponent {
   }
 
   private renderReadyForPlay(ctx: CanvasRenderingContext2D) {
+    this.renderEarth(ctx, 5);
+
     //Spaceship controllers
     this.spaceshipControllers();
 
@@ -401,7 +492,7 @@ export class GameComponent {
     ctx.font = "35px ChalkboardSE-Regular";
     ctx.textAlign = "center";
     ctx.fillText(this.helpText, DEVICE_WIDTH/2, 300);
-    if(this.state == State.GAMEOVER) {
+    if(this.state == State.GAMEOVER || this.state == State.WIN) {
       ctx.fillText("Klicka på båda skärmarna för att starta igen", DEVICE_WIDTH/2, 350);
     }
   }
@@ -410,6 +501,39 @@ export class GameComponent {
     for(var i = 0; i < this.collisionHandler.health; i++) {
       this.health_sprites[i].render(ctx, 20+(55*i), 20);
     }
+  }
+
+  private drawMUfoHealth(ctx: CanvasRenderingContext2D) {
+    for(var i = 0; i < this.ufoHandler.mUfo.hp; i++) {
+      this.mufo_health_sprites[i].render(ctx, DEVICE_WIDTH-55-(50*i), 20);
+    }
+  }
+
+  private renderEarth(ctx: CanvasRenderingContext2D, health: number){
+       //Paint the earth
+    let img = new Image();
+    img.src = "images/earth.png";
+    switch (health) {
+      case 5:
+        img.src = "images/earth4.png";
+        break;
+      case 4:
+        img.src = "images/earth3.png";
+        break;
+      case 3:
+        img.src = "images/earth2.png";
+        break;
+      case 2:
+        img.src = "images/earth1.png";
+        break;
+      case 1:
+        img.src = "images/earth.png";
+        break;
+    /*case 0:
+        img.src = "images/earth.png";
+        break;*/
+    }
+    ctx.drawImage(img, 0, DEVICE_HEIGHT-80);
   }
 
   private subscribe() {
@@ -431,8 +555,11 @@ export class GameComponent {
           this.timer = t;
           this.helpText = "Nivå 1 börjar om: " + (5-t);
           if(t > 4) {
-            this.state = State.PLAYING;                  
-            
+            this.state = State.PLAYING;
+            if(this.gameService.playerId == 0) {                  
+              this.ufoHandler.mUfo.cannonBulletHandler.cannonBullets = [];
+            }
+            this.ufoHandler.ufos = [];
           }
         });
         this.listenerHandler.removeListeners();
@@ -484,11 +611,34 @@ export class GameComponent {
         this.collisionHandler.health = health;
       });
 
+      // Updates charges to the laser
+      this.collisionService.charges$.subscribe(charges => {
+        log("charges updated", charges);
+        this.spaceship1.charges = charges;
+        this.spaceship2.charges = charges;
+      })
+
       this.gameService.players$.subscribe(amount => {
         log("amount of players", amount);
         if(amount > 1 && this.gameService.playerId == 0){
           this.gameService.requestStart();
         }
       });
+
+      this.gameboardService.buttonPressed$.subscribe(pressed => {
+        log("button pressed in the other screen", pressed);
+        if(this.gameService.playerId == 0) {
+          this.p1LaserButton = pressed;
+        } else {
+          this.p0LaserButton = pressed;
+        }
+      });
+
+      this.collisionService.mufoHealth$.subscribe(hp => {
+        log("new health on mufo", hp);
+        if(this.ufoHandler.mUfo.hp != hp) {
+          this.ufoHandler.mUfo.decreaseHp(true);
+        }
+      })
     }
 }

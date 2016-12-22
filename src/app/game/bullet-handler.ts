@@ -25,7 +25,7 @@ export class BulletHandler {
     var removeBullets = [];
     for(var i = 0; i < this.bullets.length; i++) {
       this.bullets[i].render(ctx);
-      if(this.bullets[i].yPosition < -30) {
+      if(this.bullets[i].yPosition <= -30) {
         removeBullets.push(i);
       }
     }

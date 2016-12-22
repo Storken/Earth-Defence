@@ -3,12 +3,13 @@ import { Spaceship } from './spaceship';
 import { DEVICE_WIDTH, PURPLE_HARVEST_2, PURPLE_HARVEST_HEIGHT
   , PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_1, PURPLE_HARVEST_0,
   DEVICE_HEIGHT, UFO_PATH0, UFO_PATH1, UFO_PATH2, UFO_PATH3,
-  EARTH_HEALTH_LOST} from '../Util/constants';
+  EARTH_HEALTH_LOST, SHIP_SHIELD_WIDTH, SHIP_WIDTH, SHIP_HEIGHT} from '../Util/constants';
 import {Observable}     from 'rxjs/Observable';
 import {Subject}  from 'rxjs/Subject';
 import { log } from '../Util/Log.service';
 import { PathHandler } from './path-handler';
 import { CollisionService } from './collision.service';
+import { Bullet } from './bullet';
 
 export class UfoHandler {
   public ufos : Ufo[];
@@ -20,9 +21,7 @@ export class UfoHandler {
     this.pathHandler = new PathHandler();
     this.player = playerId;
     this.ufos = [];
-    if(playerId == 0) {
-      this.mUfo = new MotherUfo();
-    }
+    this.mUfo = new MotherUfo(playerId);
   }
 
   addUfos(ufo : number, amount: number) {
@@ -48,7 +47,7 @@ export class UfoHandler {
     this.ufos.splice(x, 1);
   }
 
-  renderUfos(cs : CollisionService, hp : number): number {
+  renderUfos() {
     if(this.player == 1) {
       let removeUfon: number[] = [];
       if(this.ufos == null) {
@@ -56,25 +55,16 @@ export class UfoHandler {
       }
       for(var i = 0; i < this.ufos.length; i++) {
         this.ufos[i].render(this.ctx);
-        if(this.ufos[i].yPosition > DEVICE_HEIGHT - 50 - PURPLE_HARVEST_HEIGHT || this.ufos[i].path.length < 1) {
-          removeUfon.push(i);
-        }
-      }
-      for(var i = 0; i < removeUfon.length; i++) {
-        this.removeUfo(i);
-        log("earth hit", hp);
-        cs.sendHealth(hp-1);
-        hp -= 1;
       }
     } else {
-      hp = this.mUfo.render(this.ctx, cs, hp);
+      this.mUfo.render(this.ctx);
     }
-    
-    return hp;
   }
 
   removeUfos(rmUfos: number[]) {
+    rmUfos = rmUfos.sort().reverse();
     for(let i of rmUfos) {
+      log("removing ufo", i);
       if(this.ufos[i].hit()) {
         this.ufos.splice(i, 1);
       }
@@ -88,5 +78,4 @@ export class UfoHandler {
   amountOfUfos() : number {
     return this.ufos.length;
   }
-
 }

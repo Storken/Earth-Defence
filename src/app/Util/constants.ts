@@ -16,6 +16,9 @@ export const SPACESHIP_RIGHT = "SR";
 export const HEALTH_LOST = "HL";
 export const EARTH_HEALTH_LOST = "EHL";
 export const INCOMING_UFO = "IU";
+export const CHARGES_UPDATED = "CU";
+export const BUTTON_PRESSED = "BP";
+export const MUFO_HEALTH_LOSS = "MHL";
 
 //Declare ufos for ease when selecting which
 export const PURPLE_HARVEST_HEIGHT = 40;
@@ -29,6 +32,7 @@ export const PURPLE_HARVEST_0 = 0;
 export const SHIP_WIDTH = 90;
 export const SHIP_HEIGHT = 60;
 export const SHIP_SHIELD_WIDTH = 160;
+export const SHIP_SHIELD_IMAGE_WIDTH = 230;
 
 export const MUFO_CANNON_WIDTH = 180;
 
@@ -60,4 +64,8 @@ export const UFO_PATH0 = 0;
 export const UFO_PATH1 = 1;
 export const UFO_PATH2 = 2;
 export const UFO_PATH3 = 3;
+
+//button constants
+export const LASER_BUTTON_WIDTH = 160;
+export const LASER_BUTTON_HEIGHT = 95;
 

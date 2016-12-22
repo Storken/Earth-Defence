@@ -24,20 +24,10 @@ export class CannonBulletHandler {
     });
     }
 
-    render(ctx: CanvasRenderingContext2D, cs: CollisionService, hp: number): number {
-        var removeBullets = [];
+    render(ctx: CanvasRenderingContext2D) {
         for(var i = 0; i < this.cannonBullets.length; i++) {
             this.cannonBullets[i].render(ctx);
-            if(this.cannonBullets[i].yPosition > DEVICE_HEIGHT-30) {
-                removeBullets.push(i);
-                hp -= 1;
-                cs.sendHealth(hp);
-            }
         }
-
-        this.removeBullets(removeBullets);
-        return hp;
-
   }
 
     
