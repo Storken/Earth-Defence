@@ -116,6 +116,8 @@ export class MotherUfo {
   }
 
   get hp(): number {return this.health;}
+  resetHp() {this.health = 5;}
+
   decreaseHp(fromOtherSide: boolean) { 
     log("from other side", fromOtherSide);
     if((this.playerId == 0) && !this.recentlyLostHealth ) {

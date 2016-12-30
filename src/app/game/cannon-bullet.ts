@@ -6,8 +6,8 @@ import { CannonBulletSprite } from './sprite';
 export class CannonBullet implements Bullet{
   public xPosition: number;
   public yPosition: number;
-  public width = 15;
-  public height = 30;
+  public width = 35;
+  public height = 31;
   private sprite = new CannonBulletSprite();
   private pause = false;
 

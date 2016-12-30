@@ -3,7 +3,8 @@ import {Subject}  from 'rxjs/Subject';
 import { Injectable, NgZone } from '@angular/core';
 import {log} from '../Util/Log.service';
 import { PLAYER_READY, PLAYER_NOT_READY
-  , SPACESHIP_POSITION, SPACESHIP_RIGHT, SPACESHIP_LEFT } from '../Util/constants';
+  , SPACESHIP_POSITION, SPACESHIP_RIGHT, SPACESHIP_LEFT,
+  RESTART, PAUSE } from '../Util/constants';
 import {BluetoothService} from '../connection/bluetoothle.service';
 
 @Injectable()
@@ -16,6 +17,7 @@ export class GameService {
   private spaceshipMovingLeftSource = new Subject<boolean>();
   private spaceshipMovingRightSource = new Subject<boolean>();
   private playersSource = new Subject<number>();
+  private pauseSource = new Subject<number>();
 
   // Observable string streams
   levelStart$ = this.levelStartSource.asObservable();
@@ -25,6 +27,8 @@ export class GameService {
   spaceshipMovingRight$ = this.spaceshipMovingRightSource.asObservable();
   spaceshipMoving$ = this.spaceshipMovingSource.asObservable();
   players$ = this.playersSource.asObservable();
+  pause$ = this.pauseSource.asObservable();
+  
 
   // Model data
   private _playerId: number;
@@ -101,13 +105,22 @@ export class GameService {
     ]);
   }
 
-  sendHasStarted(){
+  sendRestart(){
     this.connection.send([
-      "start",
+      RESTART,
       "",
       "",
-      2
-    ])
+      this._playerId
+    ]);
+  }
+
+  sendPause(b: boolean){
+    this.connection.send([
+      PAUSE,
+      b,
+      "",
+      this._playerId
+    ]);
   }
 
   private isHost() {
@@ -152,6 +165,12 @@ export class GameService {
         if(!msg[1]) {
           this.spaceshipMovingSource.next(msg[2]);
         }
+        break;
+      case RESTART:
+        this.levelStartSource.next(false);
+        break;
+      case PAUSE:
+        this.pauseSource.next(msg[1]);
         break;
     }
 

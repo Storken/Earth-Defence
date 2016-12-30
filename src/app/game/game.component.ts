@@ -263,7 +263,7 @@ export class GameComponent {
       }
       return false;
   }
-  private pauseLeaveButtonPressed(): boolean{
+  private pauseResumeButtonPressed(): boolean{
       if(this.lastTouch.x > (DEVICE_WIDTH/2)-45
                 && this.lastTouch.x < (DEVICE_WIDTH/2)+45) {
         if(this.lastTouch.y > 320 && this.lastTouch.y < 420) {
@@ -272,7 +272,7 @@ export class GameComponent {
       }
       return false;
   }
-  private pauseResumeButtonPressed(): boolean{
+  private pauseRestartButtonPressed(): boolean{
       if(this.lastTouch.x > (DEVICE_WIDTH/2)-115
                 && this.lastTouch.x < (DEVICE_WIDTH/2)+115) {
         if(this.lastTouch.y > 420 && this.lastTouch.y < 525) {
@@ -281,7 +281,7 @@ export class GameComponent {
       }
       return false;
   }
-  private pauseRestartButtonPressed(): boolean{
+  private pauseLeaveButtonPressed(): boolean{
       if(this.lastTouch.x > (DEVICE_WIDTH/2)-115
                 && this.lastTouch.x < (DEVICE_WIDTH/2)+115) {
         if(this.lastTouch.y > 525 && this.lastTouch.y < 630) {
@@ -316,6 +316,7 @@ export class GameComponent {
         }
       }
       else if(this.pauseButtonPressed()) {
+        this.gameService.sendPause(true);
         this.state = State.PAUSE;
         this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(true);
         this.spaceship1.bulletHandler.gamePaused(true);
@@ -371,11 +372,15 @@ export class GameComponent {
         this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(false);
         this.spaceship1.bulletHandler.gamePaused(false);
         this.spaceship2.bulletHandler.gamePaused(false);
+        this.gameService.sendPause(false);
       } else if(this.pauseRestartButtonPressed()) {
         this.gameService.requestStart();
         this.collisionHandler.health = 5;
-        this.collisionService.sendHealth(this.collisionHandler.health);
+        this.gameService.sendRestart();
         this.ufoHandler.removeAll();
+        this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(false);
+        this.spaceship1.bulletHandler.gamePaused(false);
+        this.spaceship2.bulletHandler.gamePaused(false);
       } else if(this.pauseLeaveButtonPressed()) {
 
       }
@@ -625,11 +630,15 @@ export class GameComponent {
       // Updated when the level starts.
       this.gameService.levelStart$.subscribe(started => {
         log("start!", started);
+        if(!started) {
+          this.collisionHandler.health = 5;
+          this.ufoHandler.mUfo.resetHp();
+        }
         this.initShips();
         this.state = State.READY_FOR_PLAY;
         Observable.timer(0, 1000).take(6).subscribe( t => {
           this.timer = t;
-          this.helpText = "Nivå 1 börjar om: " + (5-t);
+          this.helpText = "Spelet börjar om: " + (5-t);
           if(t > 4) {
             this.state = State.PLAYING;
             if(this.gameService.playerId == 0) {                  
@@ -713,6 +722,20 @@ export class GameComponent {
       this.collisionService.mufoHealth$.subscribe(hp => {
         log("new health on mufo", hp);
         this.ufoHandler.mUfo.decreaseHp(true);
+      });
+
+      this.gameService.pause$.subscribe(paused => {
+        if(paused) {
+          this.state = State.PAUSE;
+          this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(true);
+          this.spaceship1.bulletHandler.gamePaused(true);
+          this.spaceship2.bulletHandler.gamePaused(true);
+        } else {
+          this.state = State.PLAYING;
+          this.ufoHandler.mUfo.cannonBulletHandler.gamePaused(false);
+          this.spaceship1.bulletHandler.gamePaused(false);
+          this.spaceship2.bulletHandler.gamePaused(false);
+        }
       });
     }
 }

@@ -1,5 +1,6 @@
 import { PURPLE_HARVEST_2, PURPLE_HARVEST_WIDTH, PURPLE_HARVEST_HEIGHT
         , HEALTHPOINT_WIDTH, HEALTHPOINT_HEIGHT, SHIP_WIDTH, SHIP_HEIGHT} from '../Util/constants';
+import {Observable} from 'rxjs/Rx';
 const IMG_URL = 'images/sprites/';
 
 export class SpaceshipSprite {
@@ -79,14 +80,37 @@ export class EarthSprite {
 }
 
 export class CannonBulletSprite {
-  private sprite = new Sprite(IMG_URL + 'mothercannon-bullet.png'
-                              , 15, 30);
+  private sprite1 = new Sprite(IMG_URL + 'mothercannon-bullet1.png'
+                              , 35, 31);
+  private sprite2 = new Sprite(IMG_URL + 'mothercannon-bullet2.png'
+                              , 35, 31);
+  private sprite3 = new Sprite(IMG_URL + 'mothercannon-bullet3.png'
+                              , 35, 31);
+  private currSprite;
 
   constructor() {
+      this.currSprite = this.sprite1;
+      Observable.timer(200, 200).subscribe( t => {
+          this.switchPic();
+      });
+  }
+
+  private switchPic(){
+      switch(this.currSprite) {
+          case this.sprite1:
+            this.currSprite = this.sprite2;
+            break;
+          case this.sprite2:
+            this.currSprite = this.sprite3;
+            break;
+          case this.sprite3:
+            this.currSprite = this.sprite1;
+            break;
+      }
   }
 
   public render(ctx: CanvasRenderingContext2D, x: number, y: number) {
-      this.sprite.render(ctx, x, y);
+      this.currSprite.render(ctx, x, y);
   }
 }
 
