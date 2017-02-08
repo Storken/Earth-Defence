@@ -97,7 +97,7 @@ export class GameComponent {
     private gameboardService: GameboardService,
     private collisionService: CollisionService,
     private nav: NavController
-  ) {
+    ) {
     this.touchDown = false;
     this.state = State.FLY_TO_START
     //this.state = State.PLAYING; //web-check
@@ -185,7 +185,7 @@ export class GameComponent {
     this.gameCanvas.nativeElement.width = DEVICE_WIDTH;
     this.gameCanvas.nativeElement.height = DEVICE_HEIGHT;
     // happy drawing from here on
-    ctx.fillStyle = 'black';
+    ctx.fillStyle = 'black'; //TODO: this is maybe bad, this is a constant declaration, should not be added here.  
     ctx.fillRect(0, 0, DEVICE_WIDTH, DEVICE_HEIGHT);
 
     for(var i = 0; i < 20; i++) {

@@ -1,7 +1,7 @@
 {
-  "name": "ionic-hello-world",
-  "author": "Ionic Framework",
-  "homepage": "http://ionicframework.com/",
+  "name": "earth-defence",
+  "author": "Magnus Huttu",
+  "homepage": "https://github.com/Storken/Earth-Defence",
   "private": true,
   "scripts": {
     "ionic:build": "ionic-app-scripts build",
@@ -46,5 +46,5 @@
       "locator": "ios"
     }
   ],
-  "description": "SpaceAdventures: An Ionic project"
+  "description": "Earth Defence: A Storken production"
 }
